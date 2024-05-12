@@ -5,7 +5,7 @@ use crate::{
     types::{Delta, DeltaDecoder, DeltaDecoderS, DeltaType},
 };
 
-pub fn parse_delta<'a>(dd: &DeltaDecoder, br: &'a mut BitReader) -> Delta {
+pub fn parse_delta(dd: &DeltaDecoder, br: &mut BitReader) -> Delta {
     let mut res: Delta = Delta::new();
 
     let mask_byte_count = br.read_n_bit(3).to_u8() as usize;
@@ -89,12 +89,11 @@ fn parse_delta_field(description: &DeltaDecoderS, res: &mut Delta, br: &mut BitR
         if is_signed {
             let sign = if br.read_1_bit() { -1 } else { 1 };
             let value = (br.read_n_bit(description.bits as usize - 1)).to_u32();
-            let res_value =
-                (((sign * value as i32) as f32) / (description.divisor as f32)).to_le_bytes();
+            let res_value = (((sign * value as i32) as f32) / (description.divisor)).to_le_bytes();
             res_value.to_vec()
         } else {
             let value = (br.read_n_bit(description.bits as usize)).to_u32();
-            let res_value = ((value as f32) / (description.divisor as f32)).to_le_bytes();
+            let res_value = ((value as f32) / (description.divisor)).to_le_bytes();
             res_value.to_vec()
         }
     } else if is_angle {
@@ -122,8 +121,8 @@ pub fn write_delta(delta: &Delta, delta_decoder: &DeltaDecoder, bw: &mut BitWrit
     let mut yes_data = false;
 
     // This step marks which delta field will be encoded.
-    for (key, _) in delta {
-        let (index, _) = find_decoder(key.as_bytes(), &delta_decoder).unwrap();
+    for key in delta.keys() {
+        let (index, _) = find_decoder(key.as_bytes(), delta_decoder).unwrap();
         let quotient = index / 8;
         let remainder = index % 8;
 
@@ -145,11 +144,7 @@ pub fn write_delta(delta: &Delta, delta_decoder: &DeltaDecoder, bw: &mut BitWrit
     // We have to write delta by the described order.
     for description in delta_decoder {
         if delta.contains_key(from_utf8(&description.name).unwrap()) {
-            write_delta_field(
-                &description,
-                &find_delta_value(&description.name, delta),
-                bw,
-            );
+            write_delta_field(description, find_delta_value(&description.name, delta), bw);
         }
     }
 }
@@ -176,7 +171,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
 
             let value = if is_negative {
                 bw.append_bit(true);
-                signed_value * -1
+                -signed_value
             } else {
                 bw.append_bit(false);
                 signed_value
@@ -199,7 +194,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
 
             let value = if is_negative {
                 bw.append_bit(true);
-                signed_value * -1
+                -signed_value
             } else {
                 bw.append_bit(false);
                 signed_value
@@ -221,7 +216,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
 
             let value = if is_negative {
                 bw.append_bit(true);
-                signed_value * -1
+                -signed_value
             } else {
                 bw.append_bit(false);
                 signed_value
@@ -232,17 +227,17 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
             let res_value = u32::from_le_bytes(bytes);
             let value = res_value * description.divisor as u32;
 
-            bw.append_u32_range(value as u32, description.bits);
+            bw.append_u32_range(value, description.bits);
         }
     } else if is_some_float {
         let bytes: [u8; 4] = value[..4].try_into().unwrap();
         if is_signed {
             let res_value = f32::from_le_bytes(bytes);
-            let signed_value = res_value * description.divisor as f32;
+            let signed_value = res_value * description.divisor;
 
             let value = if signed_value.is_sign_negative() {
                 bw.append_bit(true);
-                signed_value * -1.
+                -signed_value
             } else {
                 bw.append_bit(false);
                 signed_value
@@ -251,7 +246,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
             bw.append_u32_range(value.round() as u32, description.bits - 1);
         } else {
             let res_value = f32::from_le_bytes(bytes);
-            let value = res_value * description.divisor as f32;
+            let value = res_value * description.divisor;
 
             bw.append_u32_range(value.round() as u32, description.bits);
         }
@@ -261,7 +256,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
         let res_value = f32::from_le_bytes(bytes);
         let multiplier = 360f32 / (1 << description.bits) as f32;
         let value = (res_value / multiplier).round() as u32;
-        bw.append_u32_range(value as u32, description.bits);
+        bw.append_u32_range(value, description.bits);
     } else if is_string {
         for c in value {
             bw.append_u8(*c);

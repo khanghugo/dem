@@ -37,7 +37,7 @@ pub enum DeltaType {
 // Main
 pub enum NetMessage {
     UserMessage(UserMessage),
-    EngineMessage(EngineMessage),
+    EngineMessage(Box<EngineMessage>),
 }
 
 pub struct UserMessage {
@@ -56,7 +56,7 @@ pub enum EngineMessage {
     SvcEvent(SvcEvent) = 3,
     SvcVersion(SvcVersion) = 4,
     SvcSetView(SvcSetView) = 5,
-    SvcSound(SvcSound) = 6,
+    SvcSound(Box<SvcSound>) = 6,
     SvcTime(SvcTime) = 7,
     SvcPrint(SvcPrint) = 8,
     SvcStuffText(SvcStuffText) = 9,
@@ -1210,7 +1210,7 @@ pub struct EntityStateDelta {
     pub delta: Option<Delta>,
 }
 
-/// SVC_CHOKE 42
+// SVC_CHOKE 42
 
 /// SVC_RESOURCELIST 43
 pub struct SvcResourceList {

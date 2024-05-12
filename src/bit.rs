@@ -66,9 +66,8 @@ impl BitReader {
         let current_bit = self.get_offset();
         let modulo = current_bit % 8;
         let remaining_bits = if modulo == 0 { 0 } else { 8 - modulo };
-        let consumed_bytes = (current_bit + remaining_bits) / 8;
 
-        consumed_bytes
+        (current_bit + remaining_bits) / 8
     }
 }
 
@@ -114,8 +113,7 @@ impl BitWriter {
         let bits: BitVec = i
             .to_le_bytes()
             .iter()
-            .map(|byte| BitVec::from_element(*byte))
-            .flatten()
+            .flat_map(|byte| BitVec::from_element(*byte))
             .collect();
         self.append_slice(&bits[..end as usize]);
     }
@@ -124,8 +122,7 @@ impl BitWriter {
         let bits: BitVec = i
             .to_le_bytes()
             .iter()
-            .map(|byte| BitVec::from_element(*byte))
-            .flatten()
+            .flat_map(|byte| BitVec::from_element(*byte))
             .collect();
         self.append_slice(&bits[..end as usize]);
     }
@@ -154,8 +151,7 @@ impl BitWriter {
         let bits: BitVec = i
             .to_le_bytes()
             .iter()
-            .map(|byte| BitVec::from_element(*byte))
-            .flatten()
+            .flat_map(|byte| BitVec::from_element(*byte))
             .collect();
 
         self.insert_slice(&bits[..end as usize], pos);

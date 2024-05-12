@@ -4,9 +4,32 @@ use nom::number::complete::le_u8;
 use nom::sequence::terminated;
 use nom::IResult;
 
+use nom::{
+    number::complete::{le_i16, le_i8, le_u16, le_u32},
+    sequence::tuple,
+};
+
 use crate::bit::{BitReader, BitSliceCast};
 use crate::byte_writer::ByteWriter;
-use crate::types::{ByteVec, DeltaDecoderTable, EngineMessage, SvcDisconnect};
+
+use crate::{
+    bit::BitWriter,
+    delta::{parse_delta, write_delta},
+    types::{
+        BitVec, ByteVec, ClientDataWeaponData, Delta, DeltaDecoder, DeltaDecoderS,
+        DeltaDecoderTable, EngineMessage, EntityStateDelta, EventS, OriginCoord, SvcAddAngle,
+        SvcCdTrack, SvcCenterPrint, SvcClientData, SvcCrosshairAngle, SvcCustomization,
+        SvcCutscene, SvcDecalName, SvcDeltaDescription, SvcDeltaPacketEntities, SvcDirector,
+        SvcDisconnect, SvcEvent, SvcEventReliable, SvcFileTxferFailed, SvcFinale, SvcHltv,
+        SvcLightStyle, SvcNewMoveVars, SvcNewUserMsg, SvcPacketEntities, SvcParticle, SvcPings,
+        SvcPrint, SvcResourceList, SvcResourceLocation, SvcResourceRequest, SvcRestore,
+        SvcRoomType, SvcSendCvarValue, SvcSendCvarValue2, SvcSendExtraInfo, SvcServerInfo,
+        SvcSetAngle, SvcSetPause, SvcSetView, SvcSignOnNum, SvcSound, SvcSoundFade,
+        SvcSpawnBaseline, SvcSpawnStatic, SvcSpawnStaticSound, SvcStopSound, SvcStuffText,
+        SvcTempEntity, SvcTime, SvcTimeScale, SvcUpdateUserInfo, SvcVersion, SvcVoiceData,
+        SvcVoiceInit, SvcWeaponAnim,
+    },
+};
 
 // nom helpers
 type Result<'a, T> = IResult<&'a [u8], T>;
@@ -17,18 +40,33 @@ pub fn null_string(i: &[u8]) -> Result<&[u8]> {
 }
 
 // main stuffs
+mod add_angle;
+mod cd_track;
+mod center_print;
+mod client_data;
+mod crosshair_angle;
+mod customization;
+mod cutscene;
+mod decal_name;
+mod delta_description;
+mod delta_packet_entities;
 mod disconnnect;
 mod event;
+mod event_reliable;
+mod packet_entities;
+mod resource_list;
+mod sound;
 
-// #[derive(Debug)]
+/// Auxillary data required for parsing/writing certain messages.
 struct Aux {
-    delta_decoders: Option<DeltaDecoderTable>,
+    delta_decoders: DeltaDecoderTable,
+    max_client: u8,
 }
 
 trait Doer<T> {
-    fn get_id(&self) -> u8;
-    fn parse(i: &[u8], aux: Option<Aux>) -> Result<T>;
-    fn write(&self, aux: Option<Aux>) -> ByteVec;
+    fn id(&self) -> u8;
+    fn parse(i: &[u8], aux: Aux) -> Result<T>;
+    fn write(&self, aux: Aux) -> ByteVec;
 }
 
 macro_rules! wrap {
@@ -39,11 +77,14 @@ macro_rules! wrap {
 }
 
 impl EngineMessage {
-    fn parse(i: &[u8], type_: u8, aux: Option<Aux>) -> Result<EngineMessage> {
+    // Mutate aux because it is better than returning another owned type. womp womp.
+    fn parse(i: &[u8], type_: u8, mut aux: Aux) -> Result<EngineMessage> {
         let (i, res) = match type_ {
             0 => (i, EngineMessage::SvcBad),
             1 => (i, EngineMessage::SvcNop),
             2 => wrap!(SvcDisconnect, SvcDisconnect, i, aux),
+            3 => wrap!(SvcEvent, SvcEvent, i, aux),
+            38 => wrap!(SvcAddAngle, SvcAddAngle, i, aux),
             // Error handled somewhere else.
             _ => unreachable!("Invalid message ID"),
         };
@@ -51,10 +92,10 @@ impl EngineMessage {
         Ok((i, res))
     }
 
-    fn write(&self, aux: Option<Aux>) -> ByteVec {
+    fn write(&self, aux: Aux) -> ByteVec {
         let res = match self {
-            EngineMessage::SvcBad => vec![self.get_id()],
-            EngineMessage::SvcNop => vec![self.get_id()],
+            EngineMessage::SvcBad => vec![self.id()],
+            EngineMessage::SvcNop => vec![self.id()],
             EngineMessage::SvcDisconnect(what) => what.write(aux),
             EngineMessage::SvcEvent(what) => what.write(aux),
             EngineMessage::SvcVersion(_) => todo!(),
@@ -119,7 +160,7 @@ impl EngineMessage {
 
     // repeat because of code being fragmented
     // for good purposes tho
-    fn get_id(&self) -> u8 {
+    fn id(&self) -> u8 {
         match self {
             EngineMessage::SvcBad => 0,
             EngineMessage::SvcNop => 1,

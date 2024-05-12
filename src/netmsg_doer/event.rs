@@ -1,18 +1,11 @@
-use crate::{
-    bit::BitWriter, delta::{parse_delta, write_delta}, types::{EventS, SvcEvent}
-};
-
 use super::*;
 
 impl Doer<SvcEvent> for SvcEvent {
-    fn get_id(&self) -> u8 {
+    fn id(&self) -> u8 {
         3
     }
 
-    fn parse(i: &[u8], aux: Option<Aux>) -> Result<SvcEvent> {
-        assert!(aux.is_some());
-        assert!(aux.as_ref().unwrap().delta_decoders.as_ref().is_some());
-
+    fn parse(i: &[u8], aux: Aux) -> Result<SvcEvent> {
         let mut br = BitReader::new(i);
 
         let event_count = br.read_n_bit(5).to_owned();
@@ -33,13 +26,7 @@ impl Doer<SvcEvent> for SvcEvent {
                 };
                 let delta = if has_delta.is_some() && has_delta.unwrap() {
                     Some(parse_delta(
-                        aux.as_ref()
-                            .unwrap()
-                            .delta_decoders
-                            .as_ref()
-                            .unwrap()
-                            .get("event_t\0")
-                            .unwrap(),
+                        aux.delta_decoders.get("event_t\0").unwrap(),
                         &mut br,
                     ))
                 } else {
@@ -76,14 +63,11 @@ impl Doer<SvcEvent> for SvcEvent {
         ))
     }
 
-    fn write(&self, aux: Option<Aux>) -> ByteVec {
-        assert!(aux.is_some());
-        assert!(aux.as_ref().unwrap().delta_decoders.as_ref().is_some());
-
+    fn write(&self, aux: Aux) -> ByteVec {
         let mut writer = ByteWriter::new();
         let mut bw = BitWriter::new();
 
-        writer.append_u8(self.get_id());
+        writer.append_u8(self.id());
 
         bw.append_vec(&self.event_count);
 
@@ -92,13 +76,13 @@ impl Doer<SvcEvent> for SvcEvent {
             bw.append_bit(event.has_packet_index);
 
             if event.has_packet_index {
-                bw.append_vec(&event.packet_index.as_ref().unwrap());
+                bw.append_vec(event.packet_index.as_ref().unwrap());
                 bw.append_bit(event.has_delta.unwrap());
 
                 if event.has_delta.unwrap() {
                     write_delta(
-                        &event.delta.as_ref().unwrap(),
-                        aux.as_ref().unwrap().delta_decoders.as_ref().unwrap().get("event_t\0").unwrap(),
+                        event.delta.as_ref().unwrap(),
+                        aux.delta_decoders.get("event_t\0").unwrap(),
                         &mut bw,
                     );
                 }
@@ -106,7 +90,7 @@ impl Doer<SvcEvent> for SvcEvent {
 
             bw.append_bit(event.has_fire_time);
             if event.has_fire_time {
-                bw.append_vec(&event.fire_time.as_ref().unwrap());
+                bw.append_vec(event.fire_time.as_ref().unwrap());
             }
         }
 
