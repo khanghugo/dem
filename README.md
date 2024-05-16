@@ -39,6 +39,9 @@ write_demo("my_new_demo", demo).unwrap();
 ## Acknowledgement
 
 [hlviewer.js](https://github.com/skyrim/hlviewer.js)
+
 [talent](https://github.com/cgdangelo/talent/tree/main)
+
 [coldemoplayer](https://github.com/jpcy/coldemoplayer)
+
 [hldemojs](https://github.com/Matherunner/hldemojs)
