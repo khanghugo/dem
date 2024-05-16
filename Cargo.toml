@@ -1,5 +1,7 @@
 [package]
+authors = [ "Khang Le <mkhangle20@gmail.com>" ]
 name = "dem"
+description = "GoldSrc demo parser and writer library"
 version = "0.1.0"
 edition = "2021"
 
