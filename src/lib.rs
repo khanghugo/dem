@@ -3,14 +3,18 @@
 //! # Example
 //!
 //! ```no_run
-//! use std::{fs::File, io::{self, Read}};
+//! use crate::Aux;
+//! use crate::{parse_netmsg, write_demo, write_netmsg};
+//! use hldemo::Demo;
+//! use hldemo::FrameData;
+//! use std::{fs::File, io::Read};
 //!
 //! // prologue
 //! let mut bytes = Box::new(Vec::new());
-//! let mut f = File::open(file_name).unwrap();
+//! let mut f = File::open("example.dem").unwrap();
 //! f.read_to_end(&mut bytes).unwrap();
 //!
-//! let demo = Demo::parse(&bytes).unwrap();
+//! let mut demo = Demo::parse(&bytes).unwrap();
 //!
 //! // do stuffs
 //! let aux = Aux::new();
@@ -18,13 +22,13 @@
 //! for entry in &mut demo.directory.entries {
 //!     for frame in &mut entry.frames {
 //!         if let FrameData::NetMsg((_, data)) = &mut frame.data {
-//!             let (_, netmsg) = parse_netmsg(data.msg, aux.clone()).unwrap();  
-//!             // do netmsg things  
+//!             let (_, netmsg) = parse_netmsg(data.msg, aux.clone()).unwrap();
+//!             // do netmsg things
 //!             let bytes = write_netmsg(netmsg, aux.clone());
 //!             data.msg = bytes.leak(); // hldemo does not own any data. Remember to free.
 //!         }
 //!     }
-//! }    
+//! }
 //!
 //! // write demo
 //! write_demo("my_new_demo", demo).unwrap();
