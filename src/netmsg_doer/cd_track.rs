@@ -1,12 +1,12 @@
 use super::*;
 
-impl Doer<SvcCdTrack> for SvcCdTrack {
+impl Doer for SvcCdTrack {
     fn id(&self) -> u8 {
         32
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcCdTrack> {
-        map(tuple((le_i8, le_i8)), |(track, loop_track)| SvcCdTrack {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+        map(tuple((le_i8, le_i8)), |(track, loop_track)| Self {
             track,
             loop_track,
         })(i)

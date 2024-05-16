@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<SvcEvent> for SvcEvent {
+impl Doer for SvcEvent {
     fn id(&self) -> u8 {
         3
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcEvent> {
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
 
         let event_count = br.read_n_bit(5).to_owned();
@@ -56,7 +56,7 @@ impl Doer<SvcEvent> for SvcEvent {
 
         Ok((
             i,
-            SvcEvent {
+            Self {
                 event_count,
                 events,
             },

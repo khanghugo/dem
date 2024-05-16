@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<TeBspDecal> for TeBspDecal {
+impl Doer for TeBspDecal {
     fn id(&self) -> u8 {
         13
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<TeBspDecal> {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
         let (i, unknown1) = take(8usize)(i)?;
         let (i, entity_index) = le_i16(i)?;
         let (i, unknown2) = if entity_index != 0 {
@@ -16,7 +16,7 @@ impl Doer<TeBspDecal> for TeBspDecal {
 
         Ok((
             i,
-            TeBspDecal {
+            Self {
                 unknown1: unknown1.to_vec(),
                 entity_index,
                 unknown2,

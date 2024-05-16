@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<SvcClientData> for SvcClientData {
+impl Doer for SvcClientData {
     fn id(&self) -> u8 {
         15
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcClientData> {
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
 
         let has_delta_update_mask = br.read_1_bit();
@@ -42,7 +42,7 @@ impl Doer<SvcClientData> for SvcClientData {
 
         Ok((
             i,
-            SvcClientData {
+            Self {
                 has_delta_update_mask,
                 delta_update_mask,
                 client_data,

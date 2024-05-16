@@ -1,12 +1,12 @@
 use super::*;
 
-impl Doer<SvcCenterPrint> for SvcCenterPrint {
+impl Doer for SvcCenterPrint {
     fn id(&self) -> u8 {
         26
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcCenterPrint> {
-        map(null_string, |message| SvcCenterPrint {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+        map(null_string, |message| Self {
             message: message.to_vec(),
         })(i)
     }

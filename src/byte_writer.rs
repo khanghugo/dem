@@ -17,6 +17,10 @@ impl ByteWriter {
         self.offset += offset;
     }
 
+    pub fn get_offset(&self) -> usize {
+        self.offset
+    }
+
     pub fn append_u32(&mut self, i: u32) {
         self.data.extend(i.to_le_bytes());
         self.offset(4);

@@ -2,12 +2,12 @@ use crate::types::{Consistency, Resource, SvcResourceList};
 
 use super::*;
 
-impl Doer<SvcResourceList> for SvcResourceList {
+impl Doer for SvcResourceList {
     fn id(&self) -> u8 {
         43
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcResourceList> {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
 
         let resource_count = br.read_n_bit(12).to_owned();
@@ -75,7 +75,7 @@ impl Doer<SvcResourceList> for SvcResourceList {
 
         Ok((
             i,
-            SvcResourceList {
+            Self {
                 resource_count,
                 resources,
                 consistencies,

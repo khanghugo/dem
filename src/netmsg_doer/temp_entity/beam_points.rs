@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<TeBeamPoints> for TeBeamPoints {
+impl Doer for TeBeamPoints {
     fn id(&self) -> u8 {
         0
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<TeBeamPoints> {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
         map(
             tuple((
                 count(le_i16, 3),
@@ -31,7 +31,7 @@ impl Doer<TeBeamPoints> for TeBeamPoints {
                 color,
                 speed,
             ): (_, _, _, _, _, _, _, _, &[u8], _)| {
-                TeBeamPoints {
+                Self {
                     start_position,
                     end_position,
                     sprite_index,

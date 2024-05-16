@@ -2,12 +2,12 @@ use crate::types::EntityS;
 
 use super::*;
 
-impl Doer<SvcSpawnBaseline> for SvcSpawnBaseline {
+impl Doer for SvcSpawnBaseline {
     fn id(&self) -> u8 {
         22
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcSpawnBaseline> {
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
         let mut entities: Vec<EntityS> = vec![];
 
@@ -59,7 +59,7 @@ impl Doer<SvcSpawnBaseline> for SvcSpawnBaseline {
 
         Ok((
             i,
-            SvcSpawnBaseline {
+            Self {
                 entities,
                 total_extra_data,
                 extra_data,

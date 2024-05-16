@@ -1,12 +1,12 @@
 use super::*;
 
-impl Doer for SvcDisconnect {
+impl Doer<SvcDisconnect> for SvcDisconnect {
     fn id(&self) -> u8 {
         2
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<Self> {
-        map(null_string, |reason| Self {
+    fn parse(i: &[u8], _: Aux) -> Result<SvcDisconnect> {
+        map(null_string, |reason| SvcDisconnect {
             reason: reason.to_vec(),
         })(i)
     }

@@ -1,15 +1,15 @@
 use super::*;
 
-impl Doer<SvcNewUserMsg> for SvcNewUserMsg {
+impl Doer for SvcNewUserMsg {
     fn id(&self) -> u8 {
         39
     }
 
-    fn parse(i: &[u8], mut aux: Aux) -> Result<SvcNewUserMsg> {
+    fn parse(i: &[u8], mut aux: Aux) -> Result<Self> {
         map(
             tuple((le_u8, le_i8, take(16usize))),
             |(index, size, name): (_, _, &[u8])| {
-                let msg = SvcNewUserMsg {
+                let msg = Self {
                     index,
                     size,
                     name: name.to_vec(),

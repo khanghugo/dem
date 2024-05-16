@@ -1,12 +1,12 @@
 use super::*;
 
-impl Doer<SvcCutscene> for SvcCutscene {
+impl Doer for SvcCutscene {
     fn id(&self) -> u8 {
         34
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcCutscene> {
-        map(null_string, |text| SvcCutscene {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+        map(null_string, |text| Self {
             text: text.to_vec(),
         })(i)
     }

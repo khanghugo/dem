@@ -57,9 +57,9 @@ mod sound;
 mod spawn_baseline;
 mod temp_entity;
 
-trait Doer<T> {
+trait Doer {
     fn id(&self) -> u8;
-    fn parse(i: &[u8], aux: Aux) -> Result<T>;
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> where Self: Sized;
     fn write(&self, aux: Aux) -> ByteVec;
 }
 

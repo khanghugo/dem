@@ -1,12 +1,12 @@
 use super::*;
 
-impl Doer<SvcCrosshairAngle> for SvcCrosshairAngle {
+impl Doer for SvcCrosshairAngle {
     fn id(&self) -> u8 {
         47
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcCrosshairAngle> {
-        map(tuple((le_i16, le_i16)), |(pitch, yaw)| SvcCrosshairAngle {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+        map(tuple((le_i16, le_i16)), |(pitch, yaw)| Self {
             pitch,
             yaw,
         })(i)

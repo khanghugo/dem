@@ -2,12 +2,12 @@ use std::str::from_utf8;
 
 use super::*;
 
-impl Doer<SvcDeltaDescription> for SvcDeltaDescription {
+impl Doer for SvcDeltaDescription {
     fn id(&self) -> u8 {
         14
     }
 
-    fn parse(i: &[u8], mut aux: Aux) -> Result<SvcDeltaDescription> {
+    fn parse(i: &[u8], mut aux: Aux) -> Result<Self> {
         let (i, name) = null_string(i)?;
         let (i, total_fields) = le_u16(i)?;
 
@@ -55,7 +55,7 @@ impl Doer<SvcDeltaDescription> for SvcDeltaDescription {
 
         Ok((
             i,
-            SvcDeltaDescription {
+            Self {
                 name: name.to_vec(),
                 total_fields,
                 fields: decoder,

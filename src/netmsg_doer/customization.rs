@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<SvcCustomization> for SvcCustomization {
+impl Doer for SvcCustomization {
     fn id(&self) -> u8 {
         46
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcCustomization> {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
         let (i, (player_index, type_, name, index, download_size, flags)) =
             tuple((le_u8, le_u8, null_string, le_u16, le_u32, le_u8))(i)?;
 
@@ -17,7 +17,7 @@ impl Doer<SvcCustomization> for SvcCustomization {
 
         Ok((
             i,
-            SvcCustomization {
+            Self {
                 player_index,
                 type_,
                 name: name.to_owned(),

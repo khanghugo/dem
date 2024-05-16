@@ -1,12 +1,12 @@
 use super::*;
 
-impl Doer<SvcAddAngle> for SvcAddAngle {
+impl Doer for SvcAddAngle {
     fn id(&self) -> u8 {
         38
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcAddAngle> {
-        map(le_i16, |angle_to_add| SvcAddAngle { angle_to_add })(i)
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+        map(le_i16, |angle_to_add| Self { angle_to_add })(i)
     }
 
     fn write(&self, _: Aux) -> ByteVec {

@@ -13,12 +13,12 @@ mod beam_points;
 mod bsp_decal;
 mod text_message;
 
-impl Doer<SvcTempEntity> for SvcTempEntity {
+impl Doer for SvcTempEntity {
     fn id(&self) -> u8 {
         23
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcTempEntity> {
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
         let (i, entity_type) = le_u8(i)?;
 
         let (i, entity) = match entity_type {
@@ -193,7 +193,7 @@ impl Doer<SvcTempEntity> for SvcTempEntity {
 
         Ok((
             i,
-            SvcTempEntity {
+            Self {
                 entity_type,
                 entity,
             },

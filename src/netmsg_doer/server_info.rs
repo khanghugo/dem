@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<SvcServerInfo> for SvcServerInfo {
+impl Doer for SvcServerInfo {
     fn id(&self) -> u8 {
         11
     }
 
-    fn parse(i: &[u8], mut aux: Aux) -> Result<SvcServerInfo> {
+    fn parse(i: &[u8], mut aux: Aux) -> Result<Self> {
         map(
             tuple((
                 le_i32,
@@ -38,7 +38,7 @@ impl Doer<SvcServerInfo> for SvcServerInfo {
                 // mutate max_client
                 aux.max_client = max_players;
 
-                SvcServerInfo {
+                Self {
                     protocol,
                     spawn_count,
                     map_checksum,

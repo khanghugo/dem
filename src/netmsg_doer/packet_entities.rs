@@ -2,12 +2,12 @@ use crate::types::{EntityState, SvcPacketEntities};
 
 use super::*;
 
-impl Doer<SvcPacketEntities> for SvcPacketEntities {
+impl Doer for SvcPacketEntities {
     fn id(&self) -> u8 {
         40
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcPacketEntities> {
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
 
         let entity_count = br.read_n_bit(16).to_owned();
@@ -84,7 +84,7 @@ impl Doer<SvcPacketEntities> for SvcPacketEntities {
 
         Ok((
             i,
-            SvcPacketEntities {
+            Self {
                 entity_count,
                 entity_states,
             },

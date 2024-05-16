@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<SvcDeltaPacketEntities> for SvcDeltaPacketEntities {
+impl Doer for SvcDeltaPacketEntities {
     fn id(&self) -> u8 {
         41
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcDeltaPacketEntities> {
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
 
         let entity_count = br.read_n_bit(16).to_owned();
@@ -80,7 +80,7 @@ impl Doer<SvcDeltaPacketEntities> for SvcDeltaPacketEntities {
 
         Ok((
             i,
-            SvcDeltaPacketEntities {
+            Self {
                 entity_count,
                 delta_sequence,
                 entity_states,

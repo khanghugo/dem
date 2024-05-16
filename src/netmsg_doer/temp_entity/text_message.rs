@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<TeTextMessage> for TeTextMessage {
+impl Doer for TeTextMessage {
     fn id(&self) -> u8 {
         29
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<TeTextMessage> {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
         let (
             i,
             (
@@ -41,7 +41,7 @@ impl Doer<TeTextMessage> for TeTextMessage {
 
         Ok((
             i,
-            TeTextMessage {
+            Self {
                 channel,
                 x,
                 y,

@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<SvcEventReliable> for SvcEventReliable {
+impl Doer for SvcEventReliable {
     fn id(&self) -> u8 {
         21
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcEventReliable> {
+    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
 
         let event_index = br.read_n_bit(10).to_owned();
@@ -22,7 +22,7 @@ impl Doer<SvcEventReliable> for SvcEventReliable {
 
         Ok((
             i,
-            SvcEventReliable {
+            Self {
                 event_index,
                 event_args,
                 has_fire_time,

@@ -1,11 +1,11 @@
 use super::*;
 
-impl Doer<SvcSound> for SvcSound {
+impl Doer for SvcSound {
     fn id(&self) -> u8 {
         6
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcSound> {
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
         let mut br = BitReader::new(i);
 
         let flags = br.read_n_bit(9).to_owned();
@@ -53,7 +53,7 @@ impl Doer<SvcSound> for SvcSound {
 
         Ok((
             i,
-            SvcSound {
+            Self {
                 flags,
                 volume,
                 attenuation,
