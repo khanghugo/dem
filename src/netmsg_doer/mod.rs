@@ -87,7 +87,7 @@ mod voice_data;
 mod voice_init;
 mod weapon_anim;
 
-trait Doer {
+pub trait Doer {
     fn id(&self) -> u8;
     fn parse(i: &[u8], aux: Aux) -> Result<Self>
     where

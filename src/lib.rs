@@ -43,15 +43,17 @@ use types::{ByteVec, CustomMessage, DeltaDecoderTable, NetMessage};
 use nom_helper::Result;
 use utils::get_initial_delta;
 
-mod bit;
 mod byte_writer;
 mod delta;
-mod netmsg_doer;
 mod nom_helper;
 mod utils;
 
+pub mod bit;
 pub mod demo_writer;
+pub mod netmsg_doer;
 pub mod types;
+
+pub extern crate hldemo;
 
 /// Auxillary data required for parsing/writing certain messages.
 #[derive(Clone)]
