@@ -46,11 +46,11 @@ use utils::get_initial_delta;
 mod bit;
 mod byte_writer;
 mod delta;
-mod demo_writer;
+mod netmsg_doer;
 mod nom_helper;
 mod utils;
 
-mod netmsg_doer;
+pub mod demo_writer;
 pub mod types;
 
 /// Auxillary data required for parsing/writing certain messages.
