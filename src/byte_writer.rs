@@ -53,8 +53,7 @@ impl ByteWriter {
     }
 
     pub fn append_u8_slice(&mut self, i: &[u8]) {
-        // self.data.extend_from_slice(i);
-        // self.data.ex
+        self.data.extend_from_slice(i);
         self.offset(i.len());
     }
 

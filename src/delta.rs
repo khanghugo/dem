@@ -9,11 +9,12 @@ pub fn parse_delta(dd: &DeltaDecoder, br: &mut BitReader) -> Delta {
     let mut res: Delta = Delta::new();
 
     let mask_byte_count = br.read_n_bit(3).to_u8() as usize;
-    let mask_byte: Vec<u8> = (0..mask_byte_count)
+    let mask_bytes: Vec<u8> = (0..mask_byte_count)
         .map(|_| br.read_n_bit(8).to_u8())
         .collect();
 
-    for i in 0..mask_byte_count {
+    // for i in 0..mask_byte_count {
+    for (i, mask_byte) in mask_bytes.iter().enumerate().take(mask_byte_count) {
         for j in 0..8 {
             let index = j + i * 8;
 
@@ -21,7 +22,7 @@ pub fn parse_delta(dd: &DeltaDecoder, br: &mut BitReader) -> Delta {
                 return res;
             }
 
-            if (mask_byte[i] & (1 << j)) != 0 {
+            if (mask_byte & (1 << j)) != 0 {
                 let description = &dd[index];
                 let key = from_utf8(&description.name).unwrap().to_owned();
                 let value = parse_delta_field(description, &mut res, br);

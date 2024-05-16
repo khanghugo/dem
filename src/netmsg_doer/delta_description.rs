@@ -1,3 +1,5 @@
+use std::str::from_utf8;
+
 use super::*;
 
 impl Doer<SvcDeltaDescription> for SvcDeltaDescription {
@@ -5,7 +7,7 @@ impl Doer<SvcDeltaDescription> for SvcDeltaDescription {
         14
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<SvcDeltaDescription> {
+    fn parse(i: &[u8], mut aux: Aux) -> Result<SvcDeltaDescription> {
         let (i, name) = null_string(i)?;
         let (i, total_fields) = le_u16(i)?;
 
@@ -47,7 +49,10 @@ impl Doer<SvcDeltaDescription> for SvcDeltaDescription {
         let clone = &clone[..range];
         let (i, _) = take(range)(i)?;
 
-        // It really should mutate the delta decoder table here but we're respecting ownership.
+        // mutate delta_decoders
+        aux.delta_decoders
+            .insert(from_utf8(name).unwrap().to_owned(), decoder.clone());
+
         Ok((
             i,
             SvcDeltaDescription {
@@ -59,7 +64,7 @@ impl Doer<SvcDeltaDescription> for SvcDeltaDescription {
         ))
     }
 
-    fn write(&self, aux: Aux) -> ByteVec {
+    fn write(&self, _: Aux) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

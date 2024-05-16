@@ -1,17 +1,21 @@
-use nom::bytes::complete::{tag, take, take_until};
-use nom::combinator::{map, peek};
+use nom::bytes::complete::take;
+use nom::combinator::{fail, map};
+use nom::error::context;
 use nom::number::complete::le_u8;
-use nom::sequence::terminated;
-use nom::IResult;
 
 use nom::{
-    number::complete::{le_i16, le_i8, le_u16, le_u32},
+    multi::count,
+    number::complete::{le_i16, le_i32, le_i8, le_u16, le_u32},
     sequence::tuple,
 };
+
+use crate::nom_helper::{null_string, Result};
 
 use crate::bit::{BitReader, BitSliceCast};
 use crate::byte_writer::ByteWriter;
 
+use crate::types::{NetMessage, UserMessage};
+use crate::Aux;
 use crate::{
     bit::BitWriter,
     delta::{parse_delta, write_delta},
@@ -31,14 +35,6 @@ use crate::{
     },
 };
 
-// nom helpers
-type Result<'a, T> = IResult<&'a [u8], T>;
-
-pub fn null_string(i: &[u8]) -> Result<&[u8]> {
-    let (i, string) = peek(terminated(take_until("\x00"), tag("\x00")))(i)?;
-    take(string.len() + 1)(i)
-}
-
 // main stuffs
 mod add_angle;
 mod cd_track;
@@ -53,15 +49,13 @@ mod delta_packet_entities;
 mod disconnnect;
 mod event;
 mod event_reliable;
+mod new_user_msg;
 mod packet_entities;
 mod resource_list;
+mod server_info;
 mod sound;
-
-/// Auxillary data required for parsing/writing certain messages.
-struct Aux {
-    delta_decoders: DeltaDecoderTable,
-    max_client: u8,
-}
+mod spawn_baseline;
+mod temp_entity;
 
 trait Doer<T> {
     fn id(&self) -> u8;
@@ -74,38 +68,127 @@ macro_rules! wrap {
         let ($input, res) = $parser::parse($input, $aux)?;
         ($input, EngineMessage::$svc(res))
     }};
+
+    // This one means the struct name has to be the same as enum name
+    ($svc:ident, $input:ident, $aux:ident) => {{
+        let ($input, res) = $svc::parse($input, $aux)?;
+        ($input, EngineMessage::$svc(res))
+    }};
+}
+
+impl NetMessage {
+    pub fn parse(i: &[u8], aux: Aux) -> Result<NetMessage> {
+        let (i, type_) = le_u8(i)?;
+
+        match type_ {
+            0..=63 => {
+                let (i, res) = EngineMessage::parse(i, type_, aux)?;
+                Ok((i, NetMessage::EngineMessage(Box::new(res))))
+            }
+            _ => {
+                let (i, res) = UserMessage::parse(i, type_, aux)?;
+                Ok((i, NetMessage::UserMessage(res)))
+            }
+        }
+    }
+
+    pub fn write(&self, aux: Aux) -> ByteVec {
+        match self {
+            NetMessage::UserMessage(what) => what.write(aux),
+            NetMessage::EngineMessage(what) => what.write(aux),
+        }
+    }
+}
+
+impl UserMessage {
+    fn parse(i: &[u8], id: u8, mut aux: Aux) -> Result<UserMessage> {
+        let custom_message = aux.custom_messages.get(&id);
+
+        let is_set = custom_message.is_some();
+        let is_size = custom_message.is_some() && custom_message.unwrap().size > -1; // equivalent to -1
+
+        let (i, data) = if is_size {
+            take(custom_message.unwrap().size as usize)(i)?
+        } else {
+            let (i, length) = le_u8(i)?;
+            take(length as usize)(i)?
+        };
+
+        Ok((
+            i,
+            UserMessage {
+                id,
+                name: if is_set {
+                    custom_message.unwrap().name.clone()
+                } else {
+                    b"\0".to_vec()
+                },
+                data: data.to_vec(),
+            },
+        ))
+    }
+
+    fn write(&self, aux: Aux) -> ByteVec {
+        let mut writer = ByteWriter::new();
+
+        writer.append_u8(self.id);
+
+        if let Some(message) = aux.custom_messages.get(&self.id) {
+            if message.size == -1 {
+                writer.append_u8(self.data.len() as u8);
+            }
+        }
+
+        writer.append_u8_slice(&self.data);
+
+        writer.data
+    }
 }
 
 impl EngineMessage {
-    // Mutate aux because it is better than returning another owned type. womp womp.
-    fn parse(i: &[u8], type_: u8, mut aux: Aux) -> Result<EngineMessage> {
+    fn parse(i: &[u8], type_: u8, aux: Aux) -> Result<EngineMessage> {
         let (i, res) = match type_ {
             0 => (i, EngineMessage::SvcBad),
             1 => (i, EngineMessage::SvcNop),
-            2 => wrap!(SvcDisconnect, SvcDisconnect, i, aux),
-            3 => wrap!(SvcEvent, SvcEvent, i, aux),
-            38 => wrap!(SvcAddAngle, SvcAddAngle, i, aux),
-            // Error handled somewhere else.
-            _ => unreachable!("Invalid message ID"),
+            2 => wrap!(SvcDisconnect, i, aux),
+            3 => wrap!(SvcEvent, i, aux),
+            6 => wrap!(SvcSound, i, aux),
+            11 => wrap!(SvcServerInfo, i, aux), // mutate max_client
+            14 => wrap!(SvcDeltaDescription, i, aux), // mutate delta_decoders
+            15 => wrap!(SvcClientData, i, aux),
+            21 => wrap!(SvcEventReliable, i, aux),
+            22 => wrap!(SvcSpawnBaseline, i, aux),
+            26 => wrap!(SvcCenterPrint, i, aux),
+            32 => wrap!(SvcCdTrack, i, aux),
+            34 => wrap!(SvcCutscene, i, aux),
+            36 => wrap!(SvcDecalName, i, aux),
+            38 => wrap!(SvcAddAngle, i, aux),
+            39 => wrap!(SvcNewUserMsg, i, aux), // mutate custom_messages
+            40 => wrap!(SvcPacketEntities, i, aux),
+            41 => wrap!(SvcDeltaDescription, i, aux),
+            43 => wrap!(SvcResourceList, i, aux),
+            46 => wrap!(SvcCustomization, i, aux),
+            47 => wrap!(SvcCrosshairAngle, i, aux),
+            _ => context("Bad engine message number", fail)(i)?,
         };
 
         Ok((i, res))
     }
 
     fn write(&self, aux: Aux) -> ByteVec {
-        let res = match self {
+        match self {
             EngineMessage::SvcBad => vec![self.id()],
             EngineMessage::SvcNop => vec![self.id()],
             EngineMessage::SvcDisconnect(what) => what.write(aux),
             EngineMessage::SvcEvent(what) => what.write(aux),
             EngineMessage::SvcVersion(_) => todo!(),
             EngineMessage::SvcSetView(_) => todo!(),
-            EngineMessage::SvcSound(_) => todo!(),
+            EngineMessage::SvcSound(what) => what.write(aux),
             EngineMessage::SvcTime(_) => todo!(),
             EngineMessage::SvcPrint(_) => todo!(),
             EngineMessage::SvcStuffText(_) => todo!(),
             EngineMessage::SvcSetAngle(_) => todo!(),
-            EngineMessage::SvcServerInfo(_) => todo!(),
+            EngineMessage::SvcServerInfo(what) => what.write(aux),
             EngineMessage::SvcLightStyle(_) => todo!(),
             EngineMessage::SvcUpdateUserInfo(_) => todo!(),
             EngineMessage::SvcDeltaDescription(_) => todo!(),
@@ -117,7 +200,7 @@ impl EngineMessage {
             EngineMessage::SvcSpawnStatic(_) => todo!(),
             EngineMessage::SvcEventReliable(_) => todo!(),
             EngineMessage::SvcSpawnBaseline(_) => todo!(),
-            EngineMessage::SvcTempEntity(_) => todo!(),
+            EngineMessage::SvcTempEntity(what) => what.write(aux),
             EngineMessage::SvcSetPause(_) => todo!(),
             EngineMessage::SvcSignOnNum(_) => todo!(),
             EngineMessage::SvcCenterPrint(_) => todo!(),
@@ -126,18 +209,18 @@ impl EngineMessage {
             EngineMessage::SvcSpawnStaticSound(_) => todo!(),
             EngineMessage::SvcIntermission => todo!(),
             EngineMessage::SvcFinale(_) => todo!(),
-            EngineMessage::SvcCdTrack(_) => todo!(),
+            EngineMessage::SvcCdTrack(what) => what.write(aux),
             EngineMessage::SvcRestore(_) => todo!(),
-            EngineMessage::SvcCutscene(_) => todo!(),
+            EngineMessage::SvcCutscene(what) => what.write(aux),
             EngineMessage::SvcWeaponAnim(_) => todo!(),
-            EngineMessage::SvcDecalName(_) => todo!(),
+            EngineMessage::SvcDecalName(what) => what.write(aux),
             EngineMessage::SvcRoomType(_) => todo!(),
             EngineMessage::SvcAddAngle(_) => todo!(),
             EngineMessage::SvcNewUserMsg(_) => todo!(),
             EngineMessage::SvcPacketEntities(_) => todo!(),
             EngineMessage::SvcDeltaPacketEntities(_) => todo!(),
             EngineMessage::SvcChoke => todo!(),
-            EngineMessage::SvcResourceList(_) => todo!(),
+            EngineMessage::SvcResourceList(what) => what.write(aux),
             EngineMessage::SvcNewMovevars(_) => todo!(),
             EngineMessage::SvcResourceRequest(_) => todo!(),
             EngineMessage::SvcCustomization(_) => todo!(),
@@ -153,9 +236,7 @@ impl EngineMessage {
             EngineMessage::SvcResourceLocation(_) => todo!(),
             EngineMessage::SvcSendCvarValue(_) => todo!(),
             EngineMessage::SvcSendCvarValue2(_) => todo!(),
-        };
-
-        res
+        }
     }
 
     // repeat because of code being fragmented

@@ -57,15 +57,13 @@ impl Doer<SvcPacketEntities> for SvcPacketEntities {
                     aux.delta_decoders.get("entity_state_player_t\0").unwrap(),
                     &mut br,
                 )
+            } else if has_custom_delta {
+                parse_delta(
+                    aux.delta_decoders.get("custom_entity_state_t\0").unwrap(),
+                    &mut br,
+                )
             } else {
-                if has_custom_delta {
-                    parse_delta(
-                        aux.delta_decoders.get("custom_entity_state_t\0").unwrap(),
-                        &mut br,
-                    )
-                } else {
-                    parse_delta(aux.delta_decoders.get("entity_state_t\0").unwrap(), &mut br)
-                }
+                parse_delta(aux.delta_decoders.get("entity_state_t\0").unwrap(), &mut br)
             };
 
             entity_states.push(EntityState {
@@ -128,20 +126,18 @@ impl Doer<SvcPacketEntities> for SvcPacketEntities {
                     aux.delta_decoders.get("entity_state_player_t\0").unwrap(),
                     &mut bw,
                 )
+            } else if entity.has_custom_delta {
+                write_delta(
+                    &entity.delta,
+                    aux.delta_decoders.get("custom_entity_state_t\0").unwrap(),
+                    &mut bw,
+                )
             } else {
-                if entity.has_custom_delta {
-                    write_delta(
-                        &entity.delta,
-                        aux.delta_decoders.get("custom_entity_state_t\0").unwrap(),
-                        &mut bw,
-                    )
-                } else {
-                    write_delta(
-                        &entity.delta,
-                        aux.delta_decoders.get("entity_state_t\0").unwrap(),
-                        &mut bw,
-                    )
-                }
+                write_delta(
+                    &entity.delta,
+                    aux.delta_decoders.get("entity_state_t\0").unwrap(),
+                    &mut bw,
+                )
             }
         }
 
