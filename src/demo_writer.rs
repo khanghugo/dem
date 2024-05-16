@@ -63,7 +63,7 @@ impl DemoWriter {
             entry_offsets.push(self.writer.get_offset());
 
             for frame in &entry.frames {
-                self.write_frame(&frame);
+                self.write_frame(frame);
 
                 if matches!(frame.data, FrameData::NextSection) {
                     has_written_next_section = true;

@@ -1,12 +1,14 @@
 use super::*;
 
-impl Doer for SvcCrosshairAngle {
+impl Doer for SvcResourceLocation {
     fn id(&self) -> u8 {
-        47
+        56
     }
 
     fn parse(i: &[u8], _: Aux) -> Result<Self> {
-        map(tuple((le_i16, le_i16)), |(pitch, yaw)| Self { pitch, yaw })(i)
+        map(null_string, |download_url| SvcResourceLocation {
+            download_url: download_url.to_vec(),
+        })(i)
     }
 
     fn write(&self, _: Aux) -> ByteVec {
@@ -14,8 +16,7 @@ impl Doer for SvcCrosshairAngle {
 
         writer.append_u8(self.id());
 
-        writer.append_i16(self.pitch);
-        writer.append_i16(self.yaw);
+        writer.append_u8_slice(&self.download_url);
 
         writer.data
     }

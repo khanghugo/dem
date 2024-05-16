@@ -169,6 +169,7 @@ impl BitWriter {
     }
 }
 
+#[allow(dead_code)]
 pub trait BitSliceCast {
     fn to_u8(&self) -> u8;
     fn to_i8(&self) -> i8;

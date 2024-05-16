@@ -1,3 +1,5 @@
+use crate::types::EventS;
+
 use super::*;
 
 impl Doer for SvcEvent {

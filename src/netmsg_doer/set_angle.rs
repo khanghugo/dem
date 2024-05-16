@@ -1,12 +1,14 @@
 use super::*;
 
-impl Doer for SvcCrosshairAngle {
+impl Doer for SvcSetAngle {
     fn id(&self) -> u8 {
-        47
+        10
     }
 
     fn parse(i: &[u8], _: Aux) -> Result<Self> {
-        map(tuple((le_i16, le_i16)), |(pitch, yaw)| Self { pitch, yaw })(i)
+        map(tuple((le_i16, le_i16, le_i16)), |(pitch, yaw, roll)| {
+            SvcSetAngle { pitch, yaw, roll }
+        })(i)
     }
 
     fn write(&self, _: Aux) -> ByteVec {
@@ -16,6 +18,7 @@ impl Doer for SvcCrosshairAngle {
 
         writer.append_i16(self.pitch);
         writer.append_i16(self.yaw);
+        writer.append_i16(self.roll);
 
         writer.data
     }

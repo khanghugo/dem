@@ -1,3 +1,5 @@
+use crate::types::EntityStateDelta;
+
 use super::*;
 
 impl Doer for SvcDeltaPacketEntities {

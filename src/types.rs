@@ -59,7 +59,7 @@ pub enum EngineMessage {
     SvcEvent(SvcEvent) = 3,
     SvcVersion(SvcVersion) = 4,
     SvcSetView(SvcSetView) = 5,
-    SvcSound(SvcSound) = 6,
+    SvcSound(Box<SvcSound>) = 6,
     SvcTime(SvcTime) = 7,
     SvcPrint(SvcPrint) = 8,
     SvcStuffText(SvcStuffText) = 9,
@@ -294,6 +294,7 @@ pub struct SvcParticle {
 }
 
 /// SVC_PARTICLE 19
+//
 
 /// SVC_SPAWNSTATIC 20
 pub struct SvcSpawnStatic {

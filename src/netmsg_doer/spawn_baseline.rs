@@ -1,4 +1,4 @@
-use crate::types::EntityS;
+use crate::types::{Delta, EntityS};
 
 use super::*;
 

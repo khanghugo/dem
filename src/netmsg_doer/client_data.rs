@@ -1,3 +1,5 @@
+use crate::types::ClientDataWeaponData;
+
 use super::*;
 
 impl Doer for SvcClientData {

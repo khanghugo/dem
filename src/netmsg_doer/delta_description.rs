@@ -1,5 +1,7 @@
 use std::str::from_utf8;
 
+use crate::types::{Delta, DeltaDecoder, DeltaDecoderS};
+
 use super::*;
 
 impl Doer for SvcDeltaDescription {

@@ -5,7 +5,7 @@ use nom::number::complete::le_u8;
 
 use nom::{
     multi::count,
-    number::complete::{le_i16, le_i32, le_i8, le_u16, le_u32},
+    number::complete::{le_f32, le_i16, le_i32, le_i8, le_u16, le_u32},
     sequence::tuple,
 };
 
@@ -20,18 +20,16 @@ use crate::{
     bit::BitWriter,
     delta::{parse_delta, write_delta},
     types::{
-        BitVec, ByteVec, ClientDataWeaponData, Delta, DeltaDecoder, DeltaDecoderS,
-        DeltaDecoderTable, EngineMessage, EntityStateDelta, EventS, OriginCoord, SvcAddAngle,
-        SvcCdTrack, SvcCenterPrint, SvcClientData, SvcCrosshairAngle, SvcCustomization,
-        SvcCutscene, SvcDecalName, SvcDeltaDescription, SvcDeltaPacketEntities, SvcDirector,
-        SvcDisconnect, SvcEvent, SvcEventReliable, SvcFileTxferFailed, SvcFinale, SvcHltv,
-        SvcLightStyle, SvcNewMoveVars, SvcNewUserMsg, SvcPacketEntities, SvcParticle, SvcPings,
-        SvcPrint, SvcResourceList, SvcResourceLocation, SvcResourceRequest, SvcRestore,
-        SvcRoomType, SvcSendCvarValue, SvcSendCvarValue2, SvcSendExtraInfo, SvcServerInfo,
-        SvcSetAngle, SvcSetPause, SvcSetView, SvcSignOnNum, SvcSound, SvcSoundFade,
-        SvcSpawnBaseline, SvcSpawnStatic, SvcSpawnStaticSound, SvcStopSound, SvcStuffText,
-        SvcTempEntity, SvcTime, SvcTimeScale, SvcUpdateUserInfo, SvcVersion, SvcVoiceData,
-        SvcVoiceInit, SvcWeaponAnim,
+        BitVec, ByteVec, EngineMessage, SvcAddAngle, SvcCdTrack, SvcCenterPrint, SvcClientData,
+        SvcCrosshairAngle, SvcCustomization, SvcCutscene, SvcDecalName, SvcDeltaDescription,
+        SvcDeltaPacketEntities, SvcDirector, SvcDisconnect, SvcEvent, SvcEventReliable,
+        SvcFileTxferFailed, SvcFinale, SvcHltv, SvcLightStyle, SvcNewMoveVars, SvcNewUserMsg,
+        SvcPacketEntities, SvcParticle, SvcPings, SvcPrint, SvcResourceList, SvcResourceLocation,
+        SvcResourceRequest, SvcRestore, SvcRoomType, SvcSendCvarValue, SvcSendCvarValue2,
+        SvcSendExtraInfo, SvcServerInfo, SvcSetAngle, SvcSetPause, SvcSetView, SvcSignOnNum,
+        SvcSound, SvcSoundFade, SvcSpawnBaseline, SvcSpawnStatic, SvcSpawnStaticSound,
+        SvcStopSound, SvcStuffText, SvcTempEntity, SvcTime, SvcTimeScale, SvcUpdateUserInfo,
+        SvcVersion, SvcVoiceData, SvcVoiceInit, SvcWeaponAnim,
     },
 };
 
@@ -46,20 +44,54 @@ mod cutscene;
 mod decal_name;
 mod delta_description;
 mod delta_packet_entities;
-mod disconnnect;
+mod director;
+mod disconnect;
 mod event;
 mod event_reliable;
+mod file_txfer_failed;
+mod finale;
+mod hltv;
+mod light_style;
+mod new_movevars;
 mod new_user_msg;
 mod packet_entities;
+mod particle;
+mod pings;
+mod print;
 mod resource_list;
+mod resource_location;
+mod resource_request;
+mod restore;
+mod room_type;
+mod send_cvar_value;
+mod send_cvar_value_2;
+mod send_extra_info;
 mod server_info;
+mod set_angle;
+mod set_pause;
+mod set_view;
+mod sign_on_num;
 mod sound;
+mod sound_fade;
 mod spawn_baseline;
+mod spawn_static;
+mod spawn_static_sound;
+mod stop_sound;
+mod stuff_text;
 mod temp_entity;
+mod time;
+mod time_scale;
+mod update_user_info;
+mod version;
+mod voice_data;
+mod voice_init;
+mod weapon_anim;
 
 trait Doer {
     fn id(&self) -> u8;
-    fn parse(i: &[u8], aux: Aux) -> Result<Self> where Self: Sized;
+    fn parse(i: &[u8], aux: Aux) -> Result<Self>
+    where
+        Self: Sized;
     fn write(&self, aux: Aux) -> ByteVec;
 }
 
@@ -73,6 +105,19 @@ macro_rules! wrap {
     ($svc:ident, $input:ident, $aux:ident) => {{
         let ($input, res) = $svc::parse($input, $aux)?;
         ($input, EngineMessage::$svc(res))
+    }};
+}
+
+macro_rules! wrap_box {
+    ($svc:ident, $parser:ident, $input:ident, $aux:ident) => {{
+        let ($input, res) = $parser::parse($input, $aux)?;
+        ($input, EngineMessage::$svc(Box::new(res)))
+    }};
+
+    // This one means the struct name has to be the same as enum name
+    ($svc:ident, $input:ident, $aux:ident) => {{
+        let ($input, res) = $svc::parse($input, $aux)?;
+        ($input, EngineMessage::$svc(Box::new(res)))
     }};
 }
 
@@ -101,7 +146,7 @@ impl NetMessage {
 }
 
 impl UserMessage {
-    fn parse(i: &[u8], id: u8, mut aux: Aux) -> Result<UserMessage> {
+    fn parse(i: &[u8], id: u8, aux: Aux) -> Result<UserMessage> {
         let custom_message = aux.custom_messages.get(&id);
 
         let is_set = custom_message.is_some();
@@ -152,7 +197,7 @@ impl EngineMessage {
             1 => (i, EngineMessage::SvcNop),
             2 => wrap!(SvcDisconnect, i, aux),
             3 => wrap!(SvcEvent, i, aux),
-            6 => wrap!(SvcSound, i, aux),
+            6 => wrap_box!(SvcSound, i, aux),
             11 => wrap!(SvcServerInfo, i, aux), // mutate max_client
             14 => wrap!(SvcDeltaDescription, i, aux), // mutate delta_decoders
             15 => wrap!(SvcClientData, i, aux),

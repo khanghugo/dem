@@ -1,14 +1,22 @@
 use super::*;
 
-impl Doer<SvcDisconnect> for SvcDisconnect {
+impl Doer for SvcDirector {
     fn id(&self) -> u8 {
-        2
+        51
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<SvcDisconnect> {
-        map(null_string, |reason| SvcDisconnect {
-            reason: reason.to_vec(),
-        })(i)
+    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+        let (i, (length, flag)) = tuple((le_u8, le_u8))(i)?;
+        let (i, message) = take(length - 1)(i)?;
+
+        Ok((
+            i,
+            SvcDirector {
+                length,
+                flag,
+                message: message.to_vec(),
+            },
+        ))
     }
 
     fn write(&self, _: Aux) -> ByteVec {
@@ -16,7 +24,9 @@ impl Doer<SvcDisconnect> for SvcDisconnect {
 
         writer.append_u8(self.id());
 
-        writer.append_u8_slice(&self.reason);
+        writer.append_u8(self.length);
+        writer.append_u8(self.flag);
+        writer.append_u8_slice(&self.message);
 
         writer.data
     }

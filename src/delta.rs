@@ -25,7 +25,7 @@ pub fn parse_delta(dd: &DeltaDecoder, br: &mut BitReader) -> Delta {
             if (mask_byte & (1 << j)) != 0 {
                 let description = &dd[index];
                 let key = from_utf8(&description.name).unwrap().to_owned();
-                let value = parse_delta_field(description, &mut res, br);
+                let value = parse_delta_field(description, br);
                 res.insert(key, value);
             }
         }
@@ -40,7 +40,7 @@ macro_rules! flag {
     }};
 }
 
-fn parse_delta_field(description: &DeltaDecoderS, res: &mut Delta, br: &mut BitReader) -> Vec<u8> {
+fn parse_delta_field(description: &DeltaDecoderS, br: &mut BitReader) -> Vec<u8> {
     let lhs = description.flags;
 
     let is_signed = flag!(lhs, DeltaType::Signed);

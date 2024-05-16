@@ -1,3 +1,5 @@
+use crate::types::OriginCoord;
+
 use super::*;
 
 impl Doer for SvcSound {
