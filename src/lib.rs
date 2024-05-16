@@ -12,13 +12,15 @@ pub mod types;
 mod utils;
 
 /// Auxillary data required for parsing/writing certain messages.
+#[derive(Clone)]
 pub struct Aux {
-    delta_decoders: DeltaDecoderTable,
+    delta_decoders: Box<DeltaDecoderTable>,
     max_client: u8,
-    custom_messages: CustomMessage,
+    custom_messages: Box<CustomMessage>,
 }
 
 pub fn parse_netmsg(i: &[u8], aux: Aux) -> Result<Vec<NetMessage>> {
-    let parser = move |i| NetMessage::parse(i, aux);
+    // Cloning pointer so it should be good
+    let parser = move |i| NetMessage::parse(i, aux.clone());
     all_consuming(many0(parser))(i)
 }
