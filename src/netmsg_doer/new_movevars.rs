@@ -1,6 +1,6 @@
 use super::*;
 
-impl Doer for SvcNewMoveVars {
+impl Doer for SvcNewMovevars {
     fn id(&self) -> u8 {
         44
     }
@@ -43,7 +43,7 @@ impl Doer for SvcNewMoveVars {
                 sky_name,
             )
             // what
-            | SvcNewMoveVars {
+            | SvcNewMovevars {
                 gravity,
                 stop_speed,
                 max_speed,

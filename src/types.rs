@@ -97,7 +97,7 @@ pub enum EngineMessage {
     SvcDeltaPacketEntities(SvcDeltaPacketEntities) = 41,
     SvcChoke = 42,
     SvcResourceList(SvcResourceList) = 43,
-    SvcNewMovevars(SvcNewMoveVars) = 44,
+    SvcNewMovevars(SvcNewMovevars) = 44,
     SvcResourceRequest(SvcResourceRequest) = 45,
     SvcCustomization(SvcCustomization) = 46,
     SvcCrosshairAngle(SvcCrosshairAngle) = 47,
@@ -1252,7 +1252,7 @@ pub struct Consistency {
 }
 
 /// SVC_NEWMOVEVARS 44
-pub struct SvcNewMoveVars {
+pub struct SvcNewMovevars {
     pub gravity: f32,
     pub stop_speed: f32,
     pub max_speed: f32,
