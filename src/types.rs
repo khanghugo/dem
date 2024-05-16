@@ -382,7 +382,7 @@ pub enum TempEntity {
     // [u8; 19]
     TeSpriteTrail(ByteVec) = 15,
     // [u8; 10]
-    TeSprite(ByteVec) = 16,
+    TeSprite(ByteVec) = 17,
     // [u8; 16]
     TeBeamSprite(ByteVec) = 18,
     // [u8; 24]
@@ -627,7 +627,7 @@ pub struct TeSpriteTrail {
     pub velocity_randomness: u8,
 }
 
-/// TE_SPRITE 16
+/// TE_SPRITE 17
 pub struct TeSprite {
     // [i16; 3]
     pub position: Vec<i16>,

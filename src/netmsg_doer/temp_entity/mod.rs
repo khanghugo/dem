@@ -67,7 +67,7 @@ impl Doer for SvcTempEntity {
             15 => map(take(19usize), |res: &[u8]| {
                 TempEntity::TeSpriteTrail(res.to_vec())
             })(i)?,
-            16 => map(take(10usize), |res: &[u8]| {
+            17 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TeSprite(res.to_vec())
             })(i)?,
             18 => map(take(16usize), |res: &[u8]| {
