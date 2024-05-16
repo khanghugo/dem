@@ -114,11 +114,9 @@ pub enum EngineMessage {
     SvcSendCvarValue2(SvcSendCvarValue2) = 58,
 }
 
-/// SVC_BAD 0
-//
+// SVC_BAD 0
 
-/// SVC_NOP 1
-//
+// SVC_NOP 1
 
 /// SVC_DISCONNECT 2
 pub struct SvcDisconnect {
@@ -293,8 +291,7 @@ pub struct SvcParticle {
     pub color: u8,
 }
 
-/// SVC_PARTICLE 19
-//
+// SVC_PARTICLE 19
 
 /// SVC_SPAWNSTATIC 20
 pub struct SvcSpawnStatic {
@@ -1092,11 +1089,9 @@ pub struct SvcCenterPrint {
     pub message: ByteVec,
 }
 
-/// SVC_KILLEDMONSTER 27
-//
+// SVC_KILLEDMONSTER 27
 
-/// SVC_FOUNDSECRET 28
-//
+// SVC_FOUNDSECRET 28
 
 /// SVC_SPAWNSTATICSOUND 29
 pub struct SvcSpawnStaticSound {
@@ -1110,8 +1105,7 @@ pub struct SvcSpawnStaticSound {
     pub flags: u8,
 }
 
-/// SVC_INTERMISSION 30
-//
+// SVC_INTERMISSION 30
 
 /// SVC_FINALE 31
 pub struct SvcFinale {
@@ -1199,7 +1193,6 @@ pub struct SvcDeltaPacketEntities {
     pub entity_states: Vec<EntityStateDelta>,
 }
 
-/// These infos are not like THE docs mention.
 pub struct EntityStateDelta {
     // [bool; 11] but do u16 because arithmetic.
     pub entity_index: u16,

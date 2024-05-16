@@ -21,17 +21,18 @@ impl DemoWriter {
         }
     }
 
-    pub fn write_file(&mut self, demo: Demo) {
+    pub fn write_file(&mut self, demo: Demo) -> io::Result<()> {
         let mut file = fs::OpenOptions::new()
             .write(true)
             .truncate(true)
             .create(true)
-            .open(&self.filename)
-            .unwrap();
+            .open(&self.filename)?;
 
         self.write_demo(demo);
 
-        let _ = file.write_all(&self.writer.data);
+        file.write_all(&self.writer.data)?;
+
+        Ok(())
     }
 
     fn write_demo(&mut self, demo: Demo) {
