@@ -5,10 +5,10 @@ A complete GoldSrc demo parser and writer library
 ## Example
 
 ```rust
-use crate::Aux;
-use crate::{parse_netmsg, write_demo, write_netmsg};
-use hldemo::Demo;
-use hldemo::FrameData;
+use dem::Aux;
+use dem::{parse_netmsg, write_demo, write_netmsg};
+use dem::hldemo::Demo;
+use dem::hldemo::FrameData;
 use std::{fs::File, io::Read};
 
 // prologue
