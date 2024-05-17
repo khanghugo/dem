@@ -15,7 +15,7 @@ impl Doer for SvcSpawnBaseline {
             let index = br.read_n_bit(11).to_owned();
             let entity_index = index.to_u16();
 
-            let between = index.to_u16() > 0 && index.to_u16() <= aux.max_client as u16;
+            let between = index.to_u16() > 0 && index.to_u16() <= *aux.max_client as u16;
             let type_ = br.read_n_bit(2).to_owned();
 
             let delta = if type_.to_u8() & 1 != 0 {
@@ -75,7 +75,7 @@ impl Doer for SvcSpawnBaseline {
 
         for entity in &self.entities {
             let between =
-                entity.index.to_u16() > 0 && entity.index.to_u16() <= aux.max_client as u16;
+                entity.index.to_u16() > 0 && entity.index.to_u16() <= *aux.max_client as u16;
 
             bw.append_vec(&entity.index);
             bw.append_slice(&entity.type_); // heh

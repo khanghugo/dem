@@ -50,7 +50,7 @@ impl Doer for SvcPacketEntities {
             } else {
                 None
             };
-            let between = entity_index > 0 && entity_index <= aux.max_client as u16;
+            let between = entity_index > 0 && entity_index <= *aux.max_client as u16;
 
             let delta = if between {
                 parse_delta(
@@ -119,7 +119,7 @@ impl Doer for SvcPacketEntities {
                 bw.append_vec(entity.baseline_index.as_ref().unwrap());
             }
 
-            let between = entity.entity_index > 0 && entity.entity_index <= aux.max_client as u16;
+            let between = entity.entity_index > 0 && entity.entity_index <= *aux.max_client as u16;
             if between {
                 write_delta(
                     &entity.delta,

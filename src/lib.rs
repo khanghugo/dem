@@ -56,10 +56,10 @@ pub mod types;
 pub extern crate hldemo;
 
 /// Auxillary data required for parsing/writing certain messages.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Aux {
     delta_decoders: Box<DeltaDecoderTable>,
-    max_client: u8,
+    max_client: Box<u8>,
     custom_messages: Box<CustomMessage>,
 }
 
@@ -67,7 +67,7 @@ impl Aux {
     pub fn new() -> Self {
         Self {
             delta_decoders: Box::new(get_initial_delta()),
-            max_client: 1,
+            max_client: Box::new(1),
             custom_messages: Box::new(CustomMessage::new()),
         }
     }
@@ -82,7 +82,7 @@ impl Default for Aux {
 /// Parses all bytes in `data.msg` for each demo frame.
 ///
 /// Must be invoked for individual frames.
-pub fn parse_netmsg(i: &[u8], aux: Aux) -> Result<Vec<NetMessage>> {
+pub fn parse_netmsg<'a>(i: &'a [u8], aux: &'a mut Aux) -> Result<'a, Vec<NetMessage>> {
     // Cloning pointer so it should be good
     let parser = move |i| NetMessage::parse(i, aux.clone());
     all_consuming(many0(parser))(i)

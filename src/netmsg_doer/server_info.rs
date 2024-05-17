@@ -36,7 +36,7 @@ impl Doer for SvcServerInfo {
                 unknown,
             )| {
                 // mutate max_client
-                aux.max_client = max_players;
+                *aux.max_client = max_players;
 
                 Self {
                     protocol,

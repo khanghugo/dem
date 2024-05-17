@@ -76,6 +76,12 @@ pub struct BitWriter {
     pub offset: usize,
 }
 
+impl Default for BitWriter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[allow(dead_code)]
 impl BitWriter {
     pub fn new() -> Self {
