@@ -46,7 +46,7 @@ pub type CustomMessage = HashMap<u8, SvcNewUserMsg>;
 #[derive(Debug)]
 pub struct UserMessage {
     pub id: u8,
-    // [bool; 16]
+    /// `[bool; 16]`
     pub name: ByteVec,
     pub data: ByteVec,
 }
@@ -129,21 +129,21 @@ pub struct SvcDisconnect {
 /// SVC_EVENT 3
 #[derive(Debug)]
 pub struct SvcEvent {
-    // [bool; 5]
+    /// `[bool; 5]`
     pub event_count: BitVec,
     pub events: Vec<EventS>,
 }
 #[derive(Debug)]
 pub struct EventS {
-    // [bool; 10]
+    /// `[bool; 10]`
     pub event_index: BitVec,
     pub has_packet_index: bool,
-    // [bool; 11]
+    /// `[bool; 11]`
     pub packet_index: Option<BitVec>,
     pub has_delta: Option<bool>,
     pub delta: Option<Delta>,
     pub has_fire_time: bool,
-    // [bool; 16]
+    /// `[bool; 16]`
     pub fire_time: Option<BitVec>,
 }
 
@@ -162,13 +162,13 @@ pub struct SvcSetView {
 /// SVC_SOUND 6
 #[derive(Debug)]
 pub struct SvcSound {
-    // [bool; 9]
+    /// `[bool; 9]`
     pub flags: BitVec,
     pub volume: Option<BitVec>,
     pub attenuation: Option<BitVec>,
-    // [bool; 3]
+    /// `[bool; 3]`
     pub channel: BitVec,
-    // [bool; 11]
+    /// `[bool; 11]`
     pub entity_index: BitVec,
     pub sound_index_long: Option<BitVec>,
     pub sound_index_short: Option<BitVec>,
@@ -185,12 +185,12 @@ pub struct OriginCoord {
     pub int_flag: bool,
     pub fraction_flag: bool,
     pub is_negative: Option<bool>,
-    // [bool; 12]
+    /// `[bool; 12]`
     pub int_value: Option<BitVec>,
-    // [bool; 3]
+    /// `[bool; 3]`
     pub fraction_value: Option<BitVec>,
     // There is no unknow, Xd
-    // [bool; 2]
+    // `[bool; 2]`
     // pub unknown: BitVec,
 }
 
@@ -226,7 +226,7 @@ pub struct SvcServerInfo {
     pub protocol: i32,
     pub spawn_count: i32,
     pub map_checksum: i32,
-    // [u8; 16]
+    /// `[u8; 16]`
     pub client_dll_hash: ByteVec,
     pub max_players: u8,
     pub player_index: u8,
@@ -251,7 +251,7 @@ pub struct SvcUpdateUserInfo {
     pub index: u8,
     pub id: u32,
     pub user_info: ByteVec,
-    // [u8; 16]
+    /// `[u8; 16]`
     pub cd_key_hash: ByteVec,
 }
 
@@ -268,14 +268,14 @@ pub struct SvcDeltaDescription {
 #[derive(Debug)]
 pub struct SvcClientData {
     pub has_delta_update_mask: bool,
-    // [bool; 8]
+    /// `[bool; 8]`
     pub delta_update_mask: Option<BitVec>,
     pub client_data: Delta,
     pub weapon_data: Option<Vec<ClientDataWeaponData>>,
 }
 #[derive(Debug)]
 pub struct ClientDataWeaponData {
-    // [bool; 6]
+    /// `[bool; 6]`
     pub weapon_index: BitVec,
     pub weapon_data: Delta,
 }
@@ -302,9 +302,9 @@ pub struct PingS {
 /// SVC_PARTICLE 18
 #[derive(Debug)]
 pub struct SvcParticle {
-    // Vec3
+    /// Vec3
     pub origin: Vec<i16>,
-    // Vec3
+    /// Vec3
     pub direction: ByteVec,
     pub count: u8,
     pub color: u8,
@@ -327,18 +327,18 @@ pub struct SvcSpawnStatic {
     pub origin_z: i16,
     pub rotation_z: i8,
     pub has_render_mode: i8,
-    // [u8; 3]
+    /// `[u8; 3]`
     pub render_color: Option<ByteVec>,
 }
 
 /// SVC_EVENTRELIABLE 21
 #[derive(Debug)]
 pub struct SvcEventReliable {
-    // [bool; 10]
+    /// `[bool; 10]`
     pub event_index: BitVec,
     pub event_args: Delta,
     pub has_fire_time: bool,
-    // [bool; 16]
+    /// `[bool; 16]`
     pub fire_time: Option<BitVec>,
 }
 
@@ -347,7 +347,7 @@ pub struct SvcEventReliable {
 pub struct SvcSpawnBaseline {
     pub entities: Vec<EntityS>,
     // These members are not inside EntityS like cgdangelo/talent suggests.
-    // [bool; 6]
+    /// `[bool; 6]`
     pub total_extra_data: BitVec,
     pub extra_data: Vec<Delta>,
 }
@@ -355,9 +355,9 @@ pub struct SvcSpawnBaseline {
 pub struct EntityS {
     // Goodies
     pub entity_index: u16,
-    // [bool; 11]
+    /// `[bool; 11]`
     pub index: BitVec,
-    // [bool; 2]
+    /// `[bool; 2]`
     pub type_: BitVec,
     // One delta for 3 types
     pub delta: Delta,
@@ -373,133 +373,133 @@ pub struct SvcTempEntity {
 #[repr(u8)]
 #[derive(Debug)]
 pub enum TempEntity {
-    // [u8; 24]
+    /// `[u8; 24]`
     TeBeamPoints(TeBeamPoints) = 0,
-    // [u8; 20]
+    /// `[u8; 20]`
     TeBeamEntPoint(ByteVec) = 1,
-    // [u8; 6]
+    /// `[u8; 6]`
     TeGunshot(ByteVec) = 2,
     // It is 11
-    // [u8; 11]
+    /// `[u8; 11]`
     TeExplosion(ByteVec) = 3,
-    // [u8; 6]
+    /// `[u8; 6]`
     TeTarExplosion(ByteVec) = 4,
-    // [u8; 10]
+    /// `[u8; 10]`
     TeSmoke(ByteVec) = 5,
-    // [u8; 12]
+    /// `[u8; 12]`
     TeTracer(ByteVec) = 6,
-    // [u8; 17]
+    /// `[u8; 17]`
     TeLightning(ByteVec) = 7,
-    // [u8; 16]
+    /// `[u8; 16]`
     TeBeamEnts(ByteVec) = 8,
-    // [u8; 6]
+    /// `[u8; 6]`
     TeSparks(ByteVec) = 9,
-    // [u8; 6]
+    /// `[u8; 6]`
     TeLavaSplash(ByteVec) = 10,
-    // [u8; 6]
+    /// `[u8; 6]`
     TeTeleport(ByteVec) = 11,
-    // [u8; 8]
+    /// `[u8; 8]`
     TeExplosion2(ByteVec) = 12,
     TeBspDecal(TeBspDecal) = 13,
-    // [u8; 9]
+    /// `[u8; 9]`
     TeImplosion(ByteVec) = 14,
-    // [u8; 19]
+    /// `[u8; 19]`
     TeSpriteTrail(ByteVec) = 15,
-    // [u8; 10]
+    /// `[u8; 10]`
     TeSprite(ByteVec) = 17,
-    // [u8; 16]
+    /// `[u8; 16]`
     TeBeamSprite(ByteVec) = 18,
-    // [u8; 24]
+    /// `[u8; 24]`
     TeBeamTorus(ByteVec) = 19,
-    // [u8; 24]
+    /// `[u8; 24]`
     TeBeamDisk(ByteVec) = 20,
-    // [u8; 24]
+    /// `[u8; 24]`
     TeBeamCylinder(ByteVec) = 21,
-    // [u8; 10]
+    /// `[u8; 10]`
     TeBeamFollow(ByteVec) = 22,
-    // [u8; 11]
+    /// `[u8; 11]`
     TeGlowSprite(ByteVec) = 23,
-    // [u8; 16]
+    /// `[u8; 16]`
     TeBeamRing(ByteVec) = 24,
-    // [u8; 19]
+    /// `[u8; 19]`
     TeStreakSplash(ByteVec) = 25,
-    // [u8; 12]
+    /// `[u8; 12]`
     TeDLight(ByteVec) = 27,
-    // [u8; 16]
+    /// `[u8; 16]`
     TeELight(ByteVec) = 28,
     TeTextMessage(TeTextMessage) = 29,
-    // [u8; 17]
+    /// `[u8; 17]`
     TeLine(ByteVec) = 30,
-    // [u8; 17]
+    /// `[u8; 17]`
     TeBox(ByteVec) = 31,
-    // [u8; 2]
+    /// `[u8; 2]`
     TeKillBeam(ByteVec) = 99,
-    // [u8; 10]
+    /// `[u8; 10]`
     TeLargeFunnel(ByteVec) = 100,
-    // [u8; 14]
+    /// `[u8; 14]`
     TeBloodStream(ByteVec) = 101,
-    // [u8; 12]
+    /// `[u8; 12]`
     TeShowLine(ByteVec) = 102,
-    // [u8; 14]
+    /// `[u8; 14]`
     TeBlood(ByteVec) = 103,
-    // [u8; 9]
+    /// `[u8; 9]`
     TeDecal(ByteVec) = 104,
-    // [u8; 5]
+    /// `[u8; 5]`
     TeFizz(ByteVec) = 105,
-    // [u8; 17]
+    /// `[u8; 17]`
     TeModel(ByteVec) = 106,
-    // [u8; 13]
+    /// `[u8; 13]`
     TeExplodeModel(ByteVec) = 107,
     // It is 24
-    // [u8; 24]
+    /// `[u8; 24]`
     TeBreakModel(ByteVec) = 108,
-    // [u8; 9]
+    /// `[u8; 9]`
     TeGunshotDecal(ByteVec) = 109,
-    // [u8; 17]
+    /// `[u8; 17]`
     TeSpriteSpray(ByteVec) = 110,
-    // [u8; 7]
+    /// `[u8; 7]`
     TeArmorRicochet(ByteVec) = 111,
-    // [u8; 10]
+    /// `[u8; 10]`
     TePlayerDecal(ByteVec) = 112,
-    // [u8; 10]
+    /// `[u8; 10]`
     TeBubbles(ByteVec) = 113,
-    // [u8; 19]
+    /// `[u8; 19]`
     TeBubbleTrail(ByteVec) = 114,
-    // [u8; 12]
+    /// `[u8; 12]`
     TeBloodSprite(ByteVec) = 115,
-    // [u8; 7]
+    /// `[u8; 7]`
     TeWorldDecal(ByteVec) = 116,
-    // [u8; 7]
+    /// `[u8; 7]`
     TeWorldDecalHigh(ByteVec) = 117,
-    // [u8; 9]
+    /// `[u8; 9]`
     TeDecalHigh(ByteVec) = 118,
-    // [u8; 16]
+    /// `[u8; 16]`
     TeProjectile(ByteVec) = 119,
-    // [u8; 18]
+    /// `[u8; 18]`
     TeSpray(ByteVec) = 120,
-    // [u8; 5]
+    /// `[u8; 5]`
     TePlayerSprites(ByteVec) = 121,
-    // [u8; 10]
+    /// `[u8; 10]`
     TeParticleBurst(ByteVec) = 122,
-    // [u8; 9]
+    /// `[u8; 9]`
     TeFireField(ByteVec) = 123,
-    // [u8; 7]
+    /// `[u8; 7]`
     TePlayerAttachment(ByteVec) = 124,
-    // [u8; 1]
+    /// `[u8; 1]`
     TeKillPlayerAttachment(ByteVec) = 125,
     // It is 18.
-    // [u8; 18]
+    /// `[u8; 18]`
     TeMultigunShot(ByteVec) = 126,
-    // [u8; 15]
+    /// `[u8; 15]`
     TeUserTracer(ByteVec) = 127,
 }
 
 /// TE_BEAMPOINTS 0
 #[derive(Debug)]
 pub struct TeBeamPoints {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
     pub sprite_index: i16,
     pub start_frame: u8,
@@ -507,7 +507,7 @@ pub struct TeBeamPoints {
     pub life: u8,
     pub width: u8,
     pub noise: u8,
-    // [u8; 4] RGBA
+    /// `[u8; 4]` RGBA
     pub color: ByteVec,
     pub speed: u8,
 }
@@ -516,7 +516,7 @@ pub struct TeBeamPoints {
 #[derive(Debug)]
 pub struct TeBeamEntPoint {
     pub start_entity: i16,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
     pub sprite_index: i16,
     pub start_frame: u8,
@@ -524,7 +524,7 @@ pub struct TeBeamEntPoint {
     pub life: u8,
     pub width: u8,
     pub noise: u8,
-    // [i16; 4] RGBA
+    /// `[i16; 4]` RGBA
     pub color: ByteVec,
     pub speed: u8,
 }
@@ -532,14 +532,14 @@ pub struct TeBeamEntPoint {
 /// TE_GUNSHOT 2
 #[derive(Debug)]
 pub struct TeGunShot {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
 }
 
 /// TE_EXPLOSION 3
 #[derive(Debug)]
 pub struct TeExplosion {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub sprite_index: i16,
     pub scale: u8,
@@ -550,14 +550,14 @@ pub struct TeExplosion {
 /// TE_TAREXPLOSION 4
 #[derive(Debug)]
 pub struct TeTarExplosion {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
 }
 
 /// TE_SMOKE 5
 #[derive(Debug)]
 pub struct TeSmoke {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub sprite_index: i16,
     pub scale: u8,
@@ -567,18 +567,18 @@ pub struct TeSmoke {
 /// TE_TRACER 6
 #[derive(Debug)]
 pub struct TeTracer {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
 }
 
 /// TE_LIGHTNING 7
 #[derive(Debug)]
 pub struct TeLightning {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
     pub life: u8,
     pub width: u8,
@@ -589,7 +589,7 @@ pub struct TeLightning {
 /// TE_BEAMENTS 8
 #[derive(Debug)]
 pub struct TeBeamEnts {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_entity: i16,
     pub end_entity: i16,
     pub sprite_index: i16,
@@ -597,7 +597,7 @@ pub struct TeBeamEnts {
     pub life: u8,
     pub width: u8,
     pub noise: u8,
-    // [i16; 4] RGBA
+    /// `[i16; 4]` RGBA
     pub color: ByteVec,
     pub speed: u8,
 }
@@ -605,28 +605,28 @@ pub struct TeBeamEnts {
 /// TE_SPARKS 9
 #[derive(Debug)]
 pub struct TeSparks {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
 }
 
 /// TE_LAVASPLASH 10
 #[derive(Debug)]
 pub struct TeLavaSplash {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
 }
 
 /// TE_TELEPORT 11
 #[derive(Debug)]
 pub struct TeTeleport {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
 }
 
 /// TE_EXPLOSION2 12
 #[derive(Debug)]
 pub struct TeExplosion2 {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub color: u8,
     pub count: u8,
@@ -635,17 +635,17 @@ pub struct TeExplosion2 {
 /// TE_BSPDECAL 13
 #[derive(Debug)]
 pub struct TeBspDecal {
-    // [u8; 8]
+    /// `[u8; 8]`
     pub unknown1: ByteVec,
     pub entity_index: i16,
-    // [u8; 2]
+    /// `[u8; 2]`
     pub unknown2: Option<ByteVec>,
 }
 
 /// TE_IMPLOSION 14
 #[derive(Debug)]
 pub struct TeImplosion {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub radius: u8,
     pub count: u8,
@@ -655,9 +655,9 @@ pub struct TeImplosion {
 /// TE_SPRITETRAIL 15
 #[derive(Debug)]
 pub struct TeSpriteTrail {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
     pub sprite_index: i16,
     pub count: u8,
@@ -670,7 +670,7 @@ pub struct TeSpriteTrail {
 /// TE_SPRITE 17
 #[derive(Debug)]
 pub struct TeSprite {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub sprite_index: i16,
     pub scale: u8,
@@ -680,7 +680,7 @@ pub struct TeSprite {
 /// TE_BEAMSPRITE 18
 #[derive(Debug)]
 pub struct TeBeamSprite {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
     pub end_position: Vec<i16>,
     pub beam_sprite_index: i16,
@@ -690,16 +690,16 @@ pub struct TeBeamSprite {
 /// TE_BEAMTORUS 19
 #[derive(Debug)]
 pub struct TeBeamTorus {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub axis: Vec<i16>,
     pub sprite_index: i16,
     pub start_frame: u8,
     pub life: u8,
     pub width: u8,
     pub noise: u8,
-    // [i16; 4] RGBA
+    /// `[i16; 4] RGBA`
     pub color: ByteVec,
     pub speed: u8,
 }
@@ -707,16 +707,16 @@ pub struct TeBeamTorus {
 /// TE_BEAMDISK 20
 #[derive(Debug)]
 pub struct TeBeamDisk {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub axis: Vec<i16>,
     pub sprite_index: i16,
     pub start_frame: u8,
     pub life: u8,
     pub width: u8,
     pub noise: u8,
-    // [i16; 4] RGBA
+    /// `[i16; 4]` RGBA
     pub color: ByteVec,
     pub speed: u8,
 }
@@ -724,16 +724,16 @@ pub struct TeBeamDisk {
 /// TE_BEAMCYLINDER 21
 #[derive(Debug)]
 pub struct TeBeamCylinder {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub axis: Vec<i16>,
     pub sprite_index: i16,
     pub start_frame: u8,
     pub life: u8,
     pub width: u8,
     pub noise: u8,
-    // [i16; 4] RGBA
+    /// `[i16; 4]` RGBA
     pub color: ByteVec,
     pub speed: u8,
 }
@@ -746,14 +746,14 @@ pub struct TeBeamFollow {
     pub start_frame: u8,
     pub life: u8,
     pub width: u8,
-    // [i16; 4] RGBA
+    /// `[i16; 4]` RGBA
     pub color: ByteVec,
 }
 
 /// TE_GLOWSPRITE 23
 #[derive(Debug)]
 pub struct TeGlowSprite {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub model_index: i16,
     pub scale: u8,
@@ -772,7 +772,7 @@ pub struct TeBeamRing {
     pub life: u8,
     pub width: u8,
     pub noise: u8,
-    // [i16; 4] RGBA
+    /// `[i16; 4]` RGBA
     pub color: ByteVec,
     pub speed: u8,
 }
@@ -780,9 +780,9 @@ pub struct TeBeamRing {
 /// TE_STREAKSPLASH 25
 #[derive(Debug)]
 pub struct TeStreakSplash {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub vector: Vec<i16>,
     pub color: i16,
     pub count: u8,
@@ -792,10 +792,10 @@ pub struct TeStreakSplash {
 /// TE_DLIGHT 27
 #[derive(Debug)]
 pub struct TeDLight {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub radius: u8,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub color: ByteVec,
     pub life: u8,
     pub decay_rate: u8,
@@ -805,10 +805,10 @@ pub struct TeDLight {
 #[derive(Debug)]
 pub struct TeELight {
     pub entity_index: i16,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub radius: i16,
-    // [i8; 3]
+    /// `[i8; 3]`
     pub color: ByteVec,
     pub life: u8,
     pub decay_rate: i16,
@@ -820,7 +820,7 @@ pub struct TeTextMessage {
     pub x: i16,
     pub y: i16,
     pub effect: i8,
-    // [u8; 4]
+    /// `[u8; 4]`
     pub text_color: ByteVec,
     // THE docs forgot to mention this
     pub effect_color: ByteVec,
@@ -834,24 +834,24 @@ pub struct TeTextMessage {
 /// TE_LINE 30
 #[derive(Debug)]
 pub struct TeLine {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
     pub life: i16,
-    // [i8; 3]
+    /// `[i8; 3]`
     pub color: ByteVec,
 }
 
 /// TE_BOX 31
 #[derive(Debug)]
 pub struct TeBox {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
     pub life: i16,
-    // [i8; 3]
+    /// `[i8; 3]`
     pub color: ByteVec,
 }
 
@@ -864,7 +864,7 @@ pub struct TeKillBeam {
 /// TE_LARGEFUNNEL 100
 #[derive(Debug)]
 pub struct TeLargeFunnel {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
     pub entity_index: i16,
     pub flags: i16,
@@ -873,9 +873,9 @@ pub struct TeLargeFunnel {
 /// TE_BLOODSTREAM 101
 #[derive(Debug)]
 pub struct TeBloodStream {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub vector: i16,
     pub color: u8,
     pub count: u8,
@@ -884,18 +884,18 @@ pub struct TeBloodStream {
 /// TE_SHOWLINE 102
 #[derive(Debug)]
 pub struct TeShowLine {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub start_position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub end_position: Vec<i16>,
 }
 
 /// TE_BLOOD 103
 #[derive(Debug)]
 pub struct TeBlood {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub vector: i16,
     pub color: u8,
     pub count: u8,
@@ -904,7 +904,7 @@ pub struct TeBlood {
 /// TE_DECAL 104
 #[derive(Debug)]
 pub struct TeDecal {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub positiion: Vec<i16>,
     pub decal_index: u8,
     pub entity_index: i16,
@@ -921,9 +921,9 @@ pub struct TeFizz {
 /// TE_MODEL 106
 #[derive(Debug)]
 pub struct TeModel {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub velocity: Vec<i16>,
     pub angle_yaw: u8,
     pub model_index: i16,
@@ -934,9 +934,9 @@ pub struct TeModel {
 /// TE_EXPLODEMODEL 107
 #[derive(Debug)]
 pub struct TeExplodeModel {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub velocity: Vec<i16>,
     pub model_index: i16,
     pub count: i16,
@@ -946,11 +946,11 @@ pub struct TeExplodeModel {
 /// TE_BREAKMODEL 108
 #[derive(Debug)]
 pub struct TeBreakModel {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub size: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub velocity: Vec<i16>,
     pub velocity_randomness: u8,
     pub object_index: i16,
@@ -962,7 +962,7 @@ pub struct TeBreakModel {
 /// TE_GUNSHOTDECAL 109
 #[derive(Debug)]
 pub struct TeGunshotDecal {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub entity_index: i16,
     pub decal: u8,
@@ -971,9 +971,9 @@ pub struct TeGunshotDecal {
 /// TE_SPRITESPRAY 110
 #[derive(Debug)]
 pub struct TeSpriteSpray {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub velocity: Vec<i16>,
     pub model_index: i16,
     pub count: u8,
@@ -984,7 +984,7 @@ pub struct TeSpriteSpray {
 /// TE_ARMORRICOCHET 111
 #[derive(Debug)]
 pub struct TeArmorRicochet {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub scale: u8,
 }
@@ -993,7 +993,7 @@ pub struct TeArmorRicochet {
 #[derive(Debug)]
 pub struct TePlayerDecal {
     pub player_index: u8,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub entity_index: i16,
     pub decal_index: u8,
@@ -1002,9 +1002,9 @@ pub struct TePlayerDecal {
 /// TE_BUBBLES 113
 #[derive(Debug)]
 pub struct TeBubbles {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub min_start_positition: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub max_start_position: Vec<i16>,
     pub scale: i16,
     pub model_index: i16,
@@ -1015,9 +1015,9 @@ pub struct TeBubbles {
 /// TE_BUBBLETRAIL 114
 #[derive(Debug)]
 pub struct TeBubbleTrail {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub min_start_positition: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub max_start_position: Vec<i16>,
     pub scale: i16,
     pub model_index: i16,
@@ -1028,7 +1028,7 @@ pub struct TeBubbleTrail {
 /// TE_BLOODSPRITE 115
 #[derive(Debug)]
 pub struct TeBloodSprite {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub model_index: i16,
     pub decal_index: i16,
@@ -1039,7 +1039,7 @@ pub struct TeBloodSprite {
 /// TE_WORLDDECAL 116
 #[derive(Debug)]
 pub struct TeWorldDecal {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub texture_index: u8,
 }
@@ -1047,7 +1047,7 @@ pub struct TeWorldDecal {
 /// TE_WORLDDECALHIGH 117
 #[derive(Debug)]
 pub struct TeWorldDecalHigh {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub texture_index: u8,
 }
@@ -1055,7 +1055,7 @@ pub struct TeWorldDecalHigh {
 /// TE_DECALHIGH 118
 #[derive(Debug)]
 pub struct TeDecalHigh {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
     pub decal_index: u8,
     pub entity_index: i16,
@@ -1064,9 +1064,9 @@ pub struct TeDecalHigh {
 /// TE_PROJECTILE 119
 #[derive(Debug)]
 pub struct TeProjectile {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub velocity: Vec<i16>,
     pub model_index: i16,
     pub life: u8,
@@ -1076,9 +1076,9 @@ pub struct TeProjectile {
 /// TE_SPRAY 120
 #[derive(Debug)]
 pub struct TeSpray {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub position: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub direction: Vec<i16>,
     pub model_index: i16,
     pub count: u8,
@@ -1098,7 +1098,7 @@ pub struct TePlayerSprites {
 /// TE_PARTICLEBURST 122
 #[derive(Debug)]
 pub struct TeParticleBurst {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub origin: Vec<i16>,
     pub scale: i16,
     pub color: u8,
@@ -1108,7 +1108,7 @@ pub struct TeParticleBurst {
 /// TE_FIREFIELD 123
 #[derive(Debug)]
 pub struct TeFireField {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub origin: Vec<i16>,
     pub scale: i16,
     pub model_index: i16,
@@ -1135,11 +1135,11 @@ pub struct TeKillPlayerAttachment {
 /// TE_MULTIGUNSHOT 126
 #[derive(Debug)]
 pub struct TeMultigunShot {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub origin: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub direction: Vec<i16>,
-    // [i16; 2]
+    /// `[i16; 2]`
     pub noise: Vec<i16>,
     pub count: u8,
     pub decal_index: u8,
@@ -1148,9 +1148,9 @@ pub struct TeMultigunShot {
 /// TE_USERTRACER 127
 #[derive(Debug)]
 pub struct TeUserTracer {
-    // [i16; 3]
+    /// `[i16; 3]`
     pub origin: Vec<i16>,
-    // [i16; 3]
+    /// `[i16; 3]`
     pub velocity: Vec<i16>,
     pub life: u8,
     pub color: u8,
@@ -1253,14 +1253,14 @@ pub struct SvcNewUserMsg {
     pub index: u8,
     // weird but it's for consistency
     pub size: i8,
-    // [u8; 16]
+    /// `[u8; 16]`
     pub name: ByteVec,
 }
 
 /// SVC_PACKETENTITIES 40
 #[derive(Debug)]
 pub struct SvcPacketEntities {
-    // [bool; 16]
+    /// `[bool; 16]`
     pub entity_count: BitVec,
     pub entity_states: Vec<EntityState>,
 }
@@ -1269,13 +1269,13 @@ pub struct EntityState {
     pub entity_index: u16,
     pub increment_entity_number: bool,
     pub is_absolute_entity_index: Option<bool>,
-    // [bool; 11]
+    /// `[bool; 11]`
     pub absolute_entity_index: Option<BitVec>,
-    // [bool; 6]
+    /// `[bool; 6]`
     pub entity_index_difference: Option<BitVec>,
     pub has_custom_delta: bool,
     pub has_baseline_index: bool,
-    // [bool; 6]
+    /// `[bool; 6]`
     pub baseline_index: Option<BitVec>,
     pub delta: Delta,
 }
@@ -1283,21 +1283,21 @@ pub struct EntityState {
 /// SVC_DELTAPACKETENTITIES 41
 #[derive(Debug)]
 pub struct SvcDeltaPacketEntities {
-    // [bool; 16]
+    /// `[bool; 16]`
     pub entity_count: BitVec,
-    // [bool; 8]
+    /// `[bool; 8]`
     pub delta_sequence: BitVec,
     pub entity_states: Vec<EntityStateDelta>,
 }
 #[derive(Debug)]
 pub struct EntityStateDelta {
-    // [bool; 11] but do u16 because arithmetic.
+    /// `[bool; 11]` but do u16 because arithmetic.
     pub entity_index: u16,
     pub remove_entity: bool,
     pub is_absolute_entity_index: bool,
-    // [bool; 11]
+    /// `[bool; 11]`
     pub absolute_entity_index: Option<BitVec>,
-    // [bool; 6]
+    /// `[bool; 6]`
     pub entity_index_difference: Option<BitVec>,
     // Need to be optional because if remove is true then it won't have delta.
     pub has_custom_delta: Option<bool>,
@@ -1309,36 +1309,36 @@ pub struct EntityStateDelta {
 /// SVC_RESOURCELIST 43
 #[derive(Debug)]
 pub struct SvcResourceList {
-    // [bool; 12]
+    /// `[bool; 12]`
     pub resource_count: BitVec,
     pub resources: Vec<Resource>,
     pub consistencies: Vec<Consistency>,
 }
 #[derive(Debug, Clone)]
 pub struct Resource {
-    // [bool; 4]
+    /// `[bool; 4]`
     pub type_: BitVec,
-    // &'[u8]
+    /// `&'[u8]`
     pub name: BitVec,
-    // [bool; 12]
+    /// `[bool; 12]`
     pub index: BitVec,
-    // [bool; 24]
+    /// `[bool; 24]`
     pub size: BitVec,
-    // [bool; 3]
+    /// `[bool; 3]`
     pub flags: BitVec,
-    // [bool; 128]
+    /// `[bool; 128]`
     pub md5_hash: Option<BitVec>,
     pub has_extra_info: bool,
-    // [bool; 256]
+    /// `[bool; 256]`
     pub extra_info: Option<BitVec>,
 }
 #[derive(Debug)]
 pub struct Consistency {
     pub has_check_file_flag: bool,
     pub is_short_index: Option<bool>,
-    // [bool; 5]
+    /// `[bool; 5]`
     pub short_index: Option<BitVec>,
-    // [bool; 10]
+    /// `[bool; 10]`
     pub long_index: Option<BitVec>,
 }
 
@@ -1364,9 +1364,9 @@ pub struct SvcNewMovevars {
     pub footsteps: i32,
     pub roll_angle: f32,
     pub roll_speed: f32,
-    // Vec3
+    /// Vec3
     pub sky_color: Vec<f32>,
-    // Vec3
+    /// Vec3
     pub sky_vec: Vec<f32>,
     pub sky_name: ByteVec,
 }
@@ -1387,7 +1387,7 @@ pub struct SvcCustomization {
     pub index: u16,
     pub download_size: u32,
     pub flags: u8,
-    // [u8; 16]
+    /// `[u8; 16]`
     pub md5_hash: Option<ByteVec>,
 }
 
