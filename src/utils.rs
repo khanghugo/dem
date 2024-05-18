@@ -54,3 +54,25 @@ pub fn get_initial_delta() -> DeltaDecoderTable {
 
     res
 }
+
+#[macro_export]
+macro_rules! nbit_num {
+    ($num:expr, $bit:expr) => {{
+        use dem::bit::BitWriter;
+
+        let mut writer = BitWriter::new();
+        writer.append_u32_range($num as u32, $bit);
+        writer.data
+    }};
+}
+
+#[macro_export]
+macro_rules! nbit_str {
+    ($name:expr) => {{
+        use dem::bit::BitWriter;
+
+        let mut writer = BitWriter::new();
+        $name.as_bytes().iter().for_each(|s| writer.append_u8(*s));
+        writer.data
+    }};
+}
