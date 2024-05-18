@@ -5,11 +5,11 @@ impl Doer for SvcTimeScale {
         55
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
         map(le_f32, |time_scale| SvcTimeScale { time_scale })(i)
     }
 
-    fn write(&self, _: Aux) -> ByteVec {
+    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

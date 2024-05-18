@@ -7,8 +7,10 @@ impl Doer for SvcDeltaPacketEntities {
         41
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self> {
         let mut br = BitReader::new(i);
+
+        let aux = aux.borrow();
 
         let entity_count = br.read_n_bit(16).to_owned();
         let delta_sequence = br.read_n_bit(8).to_owned();
@@ -50,7 +52,7 @@ impl Doer for SvcDeltaPacketEntities {
             }
 
             let has_custom_delta = br.read_1_bit();
-            let between = entity_index > 0 && entity_index <= *aux.max_client as u16;
+            let between = entity_index > 0 && entity_index <= aux.max_client as u16;
 
             let delta = if between {
                 parse_delta(
@@ -90,7 +92,9 @@ impl Doer for SvcDeltaPacketEntities {
         ))
     }
 
-    fn write(&self, aux: Aux) -> ByteVec {
+    fn write(&self, aux: &RefCell<Aux>) -> ByteVec {
+        let aux = aux.borrow();
+
         let mut writer = ByteWriter::new();
         let mut bw = BitWriter::new();
 
@@ -115,7 +119,7 @@ impl Doer for SvcDeltaPacketEntities {
 
             bw.append_bit(entity.has_custom_delta.unwrap());
 
-            let between = entity.entity_index > 0 && entity.entity_index <= *aux.max_client as u16;
+            let between = entity.entity_index > 0 && entity.entity_index <= aux.max_client as u16;
             if between {
                 write_delta(
                     entity.delta.as_ref().unwrap(),

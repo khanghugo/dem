@@ -5,7 +5,7 @@ impl Doer for SvcVoiceData {
         53
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
         let (i, (player_index, size)) = tuple((le_u8, le_u16))(i)?;
         let (i, data) = take(size)(i)?;
 
@@ -19,7 +19,7 @@ impl Doer for SvcVoiceData {
         ))
     }
 
-    fn write(&self, _: Aux) -> ByteVec {
+    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

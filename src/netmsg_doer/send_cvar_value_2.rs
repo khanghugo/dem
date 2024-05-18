@@ -5,7 +5,7 @@ impl Doer for SvcSendCvarValue2 {
         58
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
         map(tuple((le_u32, null_string)), |(request_id, name)| {
             SvcSendCvarValue2 {
                 request_id,
@@ -14,7 +14,7 @@ impl Doer for SvcSendCvarValue2 {
         })(i)
     }
 
-    fn write(&self, _: Aux) -> ByteVec {
+    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

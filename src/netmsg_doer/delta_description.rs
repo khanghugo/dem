@@ -9,11 +9,13 @@ impl Doer for SvcDeltaDescription {
         14
     }
 
-    fn parse(i: &[u8], mut aux: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self> {
         let (i, name) = null_string(i)?;
         let (i, total_fields) = le_u16(i)?;
 
         let clone = i;
+
+        let mut aux = aux.borrow_mut();
 
         // Delta description is usually in LOADING section and first frame message.
         // It will detail the deltas being used and its index for correct decoding.
@@ -66,7 +68,7 @@ impl Doer for SvcDeltaDescription {
         ))
     }
 
-    fn write(&self, _: Aux) -> ByteVec {
+    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

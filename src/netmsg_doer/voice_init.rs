@@ -5,7 +5,7 @@ impl Doer for SvcVoiceInit {
         52
     }
 
-    fn parse(i: &[u8], _: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
         map(tuple((null_string, le_i8)), |(codec_name, quality)| {
             SvcVoiceInit {
                 codec_name: codec_name.to_vec(),
@@ -14,7 +14,7 @@ impl Doer for SvcVoiceInit {
         })(i)
     }
 
-    fn write(&self, _: Aux) -> ByteVec {
+    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

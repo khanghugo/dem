@@ -18,7 +18,7 @@ impl Doer for SvcTempEntity {
         23
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self> {
         let (i, entity_type) = le_u8(i)?;
 
         let (i, entity) = match entity_type {
@@ -200,7 +200,7 @@ impl Doer for SvcTempEntity {
         ))
     }
 
-    fn write(&self, aux: Aux) -> ByteVec {
+    fn write(&self, aux: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

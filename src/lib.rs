@@ -7,7 +7,7 @@
 //! use dem::{parse_netmsg, write_demo, write_netmsg};
 //! use dem::hldemo::Demo;
 //! use dem::hldemo::FrameData;
-//! use std::{fs::File, io::Read};
+//! use std::{fs::File, io::Read, cell::RefCell};
 //!
 //! // prologue
 //! let mut bytes = Box::new(Vec::new());
@@ -22,9 +22,9 @@
 //! for entry in &mut demo.directory.entries {
 //!     for frame in &mut entry.frames {
 //!         if let FrameData::NetMsg((_, data)) = &mut frame.data {
-//!             let (_, netmsg) = parse_netmsg(data.msg, aux.clone()).unwrap();
+//!             let (_, netmsg) = parse_netmsg(data.msg, &aux).unwrap();
 //!             // do netmsg things
-//!             let bytes = write_netmsg(netmsg, aux.clone());
+//!             let bytes = write_netmsg(netmsg, &aux);
 //!             data.msg = bytes.leak(); // hldemo does not own any data. Remember to free.
 //!         }
 //!     }
@@ -33,7 +33,7 @@
 //! // write demo
 //! write_demo("my_new_demo", demo).unwrap();
 //! ```
-use std::io;
+use std::{cell::RefCell, io};
 
 use demo_writer::DemoWriter;
 use hldemo::Demo;
@@ -56,44 +56,37 @@ pub mod types;
 pub extern crate hldemo;
 
 /// Auxillary data required for parsing/writing certain messages.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Aux {
-    delta_decoders: Box<DeltaDecoderTable>,
-    max_client: Box<u8>,
-    custom_messages: Box<CustomMessage>,
+    delta_decoders: DeltaDecoderTable,
+    max_client: u8,
+    custom_messages: CustomMessage,
 }
 
 impl Aux {
-    pub fn new() -> Self {
-        Self {
-            delta_decoders: Box::new(get_initial_delta()),
-            max_client: Box::new(1),
-            custom_messages: Box::new(CustomMessage::new()),
-        }
-    }
-}
-
-impl Default for Aux {
-    fn default() -> Self {
-        Self::new()
+    pub fn new() -> RefCell<Self> {
+        RefCell::new(Self {
+            delta_decoders: get_initial_delta(),
+            max_client: 1,
+            custom_messages: CustomMessage::new(),
+        })
     }
 }
 
 /// Parses all bytes in `data.msg` for each demo frame.
 ///
 /// Must be invoked for individual frames.
-pub fn parse_netmsg<'a>(i: &'a [u8], aux: &'a mut Aux) -> Result<'a, Vec<NetMessage>> {
-    // Cloning pointer so it should be good
-    let parser = move |i| NetMessage::parse(i, aux.clone());
+pub fn parse_netmsg<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Vec<NetMessage>> {
+    let parser = move |i| NetMessage::parse(i, aux);
     all_consuming(many0(parser))(i)
 }
 
 /// Should be used for replacing `data.msg` of each frame.
-pub fn write_netmsg(i: Vec<NetMessage>, aux: Aux) -> ByteVec {
+pub fn write_netmsg(i: Vec<NetMessage>, aux: &RefCell<Aux>) -> ByteVec {
     let mut res: ByteVec = vec![];
 
     for message in i {
-        res.append(&mut message.write(aux.clone()))
+        res.append(&mut message.write(aux))
     }
 
     res

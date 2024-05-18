@@ -7,8 +7,9 @@ impl Doer for SvcClientData {
         15
     }
 
-    fn parse(i: &[u8], aux: Aux) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self> {
         let mut br = BitReader::new(i);
+        let aux = aux.borrow();
 
         let has_delta_update_mask = br.read_1_bit();
         let delta_update_mask = if has_delta_update_mask {
@@ -53,7 +54,9 @@ impl Doer for SvcClientData {
         ))
     }
 
-    fn write(&self, aux: Aux) -> ByteVec {
+    fn write(&self, aux: &RefCell<Aux>) -> ByteVec {
+        let aux = aux.borrow();
+
         let mut writer = ByteWriter::new();
         let mut bw = BitWriter::new();
 
