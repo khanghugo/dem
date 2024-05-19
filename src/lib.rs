@@ -51,11 +51,15 @@ mod utils;
 pub mod bit;
 pub mod demo_writer;
 pub mod netmsg_doer;
+pub mod prelude;
 pub mod types;
 
+/// Re-exporting hldemo to have latest changes than 0.3.0 hldemo
 pub extern crate hldemo;
 
 /// Auxillary data required for parsing/writing certain messages.
+///
+/// This includes delta decoders, custom messages, and max client
 #[derive(Debug)]
 pub struct Aux {
     delta_decoders: DeltaDecoderTable,
@@ -114,4 +118,55 @@ pub fn write_demo(file_name: &str, demo: Demo) -> io::Result<()> {
     out.write_file(demo)?;
 
     Ok(())
+}
+
+/// Writes a [`u32`] into [`types::BitVec`]
+#[macro_export]
+macro_rules! nbit_num {
+    ($num:expr, $bit:expr) => {{
+        use dem::bit::BitWriter;
+
+        let mut writer = BitWriter::new();
+        writer.append_u32_range($num as u32, $bit);
+        writer.data
+    }};
+}
+
+/// Writes a string into [`types::BitVec`]
+#[macro_export]
+macro_rules! nbit_str {
+    ($name:expr) => {{
+        use dem::bit::BitWriter;
+
+        let mut writer = BitWriter::new();
+        $name.as_bytes().iter().for_each(|s| writer.append_u8(*s));
+        writer.data
+    }};
+}
+
+/// Parses through the first entry for auxillary data
+#[macro_export]
+macro_rules! init_parse {
+    ($demo:ident) => {{
+        use dem::parse_netmsg;
+        use dem::Aux;
+
+        let mut aux = Aux::new();
+
+        $demo
+            .directory
+            .entries
+            .get(0)
+            .unwrap()
+            .frames
+            .iter()
+            .for_each(|frame| match &frame.data {
+                FrameData::NetMsg((_, data)) => {
+                    parse_netmsg(data.msg, &aux).unwrap();
+                }
+                _ => (),
+            });
+
+        aux
+    }};
 }
