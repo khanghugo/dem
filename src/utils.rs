@@ -1,3 +1,5 @@
+use bitvec::{field::BitField, slice::BitSlice};
+
 use self::types::{DeltaDecoderS, DeltaType};
 
 use super::*;
@@ -53,4 +55,34 @@ pub fn get_initial_delta() -> DeltaDecoderTable {
     res.insert("delta_description_t\0".to_string(), default_decoder);
 
     res
+}
+
+pub fn bitslice_to_string(bitslice: &BitSlice) -> String {
+    assert_eq!(bitslice.len() % 8, 0);
+
+    let byte_count = bitslice.len() / 8;
+    let mut res_string = String::new();
+
+    for i in 0..byte_count {
+        res_string += (bitslice[(i * 8)..((i + 1) * 8)].load::<u8>() as char)
+            .to_string()
+            .as_str()
+    }
+
+    res_string
+}
+
+#[cfg(test)]
+mod test {
+    use bitvec::{bitarr, order::Lsb0};
+
+    use crate::utils::bitslice_to_string;
+
+    #[test]
+    fn bit_slice_to_string() {
+        let v = bitarr![usize, Lsb0; 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let res = bitslice_to_string(v.as_bitslice());
+
+        assert_eq!(res, "*38\0\0\0\0\0")
+    }
 }

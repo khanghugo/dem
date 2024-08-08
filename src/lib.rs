@@ -47,6 +47,8 @@ pub mod netmsg_doer;
 pub mod prelude;
 pub mod types;
 
+pub use utils::bitslice_to_string;
+
 /// Re-exporting hldemo to have latest changes than 0.3.0 hldemo
 pub extern crate hldemo;
 
