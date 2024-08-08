@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
-use bitvec::{order::Lsb0, vec::BitVec as _BitVec};
+use bitvec::{order::Lsb0, slice::BitSlice as _BitSlice, vec::BitVec as _BitVec};
 
 // use super::*;
 
 // Primitive
 // pub type BitVec = _BitVec<u8>;
 pub type BitVec = _BitVec<u8, Lsb0>;
+pub type BitSlice = _BitSlice<u8, Lsb0>;
 pub type ByteVec = Vec<u8>;
 
 // Delta

@@ -1,4 +1,5 @@
-use bitvec::{field::BitField, slice::BitSlice};
+use bitvec::field::BitField;
+use types::BitSlice;
 
 use self::types::{DeltaDecoderS, DeltaType};
 
@@ -80,7 +81,7 @@ mod test {
 
     #[test]
     fn bit_slice_to_string() {
-        let v = bitarr![usize, Lsb0; 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let v = bitarr![u8, Lsb0; 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let res = bitslice_to_string(v.as_bitslice());
 
         assert_eq!(res, "*38\0\0\0\0\0")
