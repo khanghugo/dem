@@ -10,12 +10,7 @@
 //! use std::{fs::File, io::Read, cell::RefCell};
 //!
 //! // prologue
-//! let mut bytes = Box::new(Vec::new());
-//! let mut f = File::open("example.dem").unwrap();
-//! f.read_to_end(&mut bytes).unwrap();
-//!
-//! let mut demo = Demo::parse(&bytes).unwrap();
-//!
+//! let demo = open_demo!("example.dem");
 //! // do stuffs
 //! let aux = Aux::new();
 //!
@@ -31,12 +26,10 @@
 //! }
 //!
 //! // write demo
-//! write_demo("my_new_demo", demo).unwrap();
+//! write_demo!("my_new_demo", demo).unwrap();
 //! ```
 use std::{cell::RefCell, io};
 
-use demo_writer::DemoWriter;
-use hldemo::Demo;
 use nom::{combinator::all_consuming, multi::many0};
 use types::{ByteVec, CustomMessage, DeltaDecoderTable, NetMessage};
 
@@ -96,35 +89,67 @@ pub fn write_netmsg(i: Vec<NetMessage>, aux: &RefCell<Aux>) -> ByteVec {
     res
 }
 
+/// Opens a demo
+///
+/// # Example
+/// ```no_run
+/// let demo = open_demo!("./tests/demotest.dem");
+/// ```
+#[macro_export]
+macro_rules! open_demo {
+    ($name:literal) => {{
+        use std::fs::File;
+        use std::io::Read;
+
+        let mut bytes = Vec::new();
+        let mut f = File::open($name).unwrap();
+        f.read_to_end(&mut bytes).unwrap();
+
+        $crate::hldemo::Demo::parse(bytes.leak()).unwrap()
+    }};
+
+    ($name:ident) => {{
+        use std::fs::File;
+        use std::io::Read;
+
+        let mut bytes = Vec::new();
+        let mut f = File::open($name).unwrap();
+        f.read_to_end(&mut bytes).unwrap();
+
+        $crate::hldemo::Demo::parse(bytes.leak()).unwrap()
+    }};
+}
+
 /// Writes a demo
 ///
 /// # Example
 /// ```no_run
-/// use std::{fs::File, io::{self, Read}};
-///
-/// let mut bytes = Box::new(Vec::new());
-/// let mut f = File::open(file_name).unwrap();
-/// f.read_to_end(&mut bytes).unwrap();
-///
-/// let demo = Demo::parse(&bytes).unwrap();
-///
+/// let demo = open_demo!("./tests/demotest.dem");
 /// // do your stuffs
-///
-/// write_demo("my_new_demo", demo).unwrap();
+/// write_demo!("my_new_demo", demo).unwrap();
 /// ```
-pub fn write_demo(file_name: &str, demo: Demo) -> io::Result<()> {
-    let mut out = DemoWriter::new(String::from(file_name));
+#[macro_export]
+macro_rules! write_demo {
+    ($demo_name:literal, $demo:ident) => {{
+        use $crate::demo_writer::DemoWriter;
 
-    out.write_file(demo)?;
+        let mut out = DemoWriter::new(String::from($demo_name));
+        out.write_file($demo)
+    }};
 
-    Ok(())
+    ($demo_name:ident, $demo:ident) => {{
+        use $crate::demo_writer::DemoWriter;
+
+        let mut out = DemoWriter::new(String::from($demo_name));
+        out.write_file($demo)
+    }};
 }
 
 /// Writes a [`u32`] into [`types::BitVec`]
 #[macro_export]
 macro_rules! nbit_num {
     ($num:expr, $bit:expr) => {{
-        use dem::bit::BitWriter;
+        use $crate::bit::BitWriter;
 
         let mut writer = BitWriter::new();
         writer.append_u32_range($num as u32, $bit);
@@ -136,7 +161,7 @@ macro_rules! nbit_num {
 #[macro_export]
 macro_rules! nbit_str {
     ($name:expr) => {{
-        use dem::bit::BitWriter;
+        use $crate::bit::BitWriter;
 
         let mut writer = BitWriter::new();
         $name.as_bytes().iter().for_each(|s| writer.append_u8(*s));
@@ -148,8 +173,8 @@ macro_rules! nbit_str {
 #[macro_export]
 macro_rules! init_parse {
     ($demo:ident) => {{
-        use dem::parse_netmsg;
-        use dem::Aux;
+        use $crate::parse_netmsg;
+        use $crate::Aux;
 
         let mut aux = Aux::new();
 
@@ -169,4 +194,18 @@ macro_rules! init_parse {
 
         aux
     }};
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn open_demo() {
+        open_demo!("./tests/demotest.dem");
+    }
+
+    #[test]
+    fn write_demo() {
+        let dem = open_demo!("./tests/demotest.dem");
+        let _res = write_demo!("out.dem", dem).unwrap();
+    }
 }
