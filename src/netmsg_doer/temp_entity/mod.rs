@@ -204,9 +204,7 @@ impl Doer for SvcTempEntity {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());
-
-        // entity type is written by the entity itself.
-        // writer.append_u8(self.entity_type);
+        writer.append_u8(self.entity_type);
 
         let bytes = match &self.entity {
             TempEntity::TeBeamPoints(i) => &i.write(aux),

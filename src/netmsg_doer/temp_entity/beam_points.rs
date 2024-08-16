@@ -50,8 +50,6 @@ impl Doer for TeBeamPoints {
     fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
-        writer.append_u8(self.id());
-
         writer.append_i16_slice(self.start_position.as_slice());
         writer.append_i16_slice(self.end_position.as_slice());
         writer.append_i16(self.sprite_index);

@@ -60,8 +60,6 @@ impl Doer for TeTextMessage {
     fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
-        writer.append_u8(self.id());
-
         writer.append_i8(self.channel);
         writer.append_i16(self.x);
         writer.append_i16(self.y);

@@ -27,8 +27,6 @@ impl Doer for TeBspDecal {
     fn write(&self, _: &RefCell<Aux>) -> ByteVec {
         let mut writer = ByteWriter::new();
 
-        writer.append_u8(self.id());
-
         writer.append_u8_slice(&self.unknown1);
         writer.append_i16(self.entity_index);
         if self.entity_index != 0 {
