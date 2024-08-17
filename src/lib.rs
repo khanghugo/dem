@@ -52,6 +52,9 @@ pub use utils::bitslice_to_string;
 /// Re-exporting hldemo to have latest changes than 0.3.0 hldemo
 pub extern crate hldemo;
 
+/// Re-exporting bitvec to avoid clogging the main project
+pub extern crate bitvec;
+
 /// Auxillary data required for parsing/writing certain messages.
 ///
 /// This includes delta decoders, custom messages, and max client
