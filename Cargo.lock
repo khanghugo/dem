@@ -90,7 +90,7 @@ checksum = "4271d37baee1b8c7e4b708028c57d816cf9d2434acb33a549475f78c181f6253"
 [[package]]
 name = "hldemo"
 version = "0.3.0"
-source = "git+https://github.com/YaLTeR/hldemo-rs.git#cbc1efa212a4fc49c776304058efd07e0369caa7"
+source = "git+https://github.com/YaLTeR/hldemo-rs.git?rev=cbc1efa212a4fc49c776304058efd07e0369caa7#cbc1efa212a4fc49c776304058efd07e0369caa7"
 dependencies = [
  "error-chain",
  "nom 4.2.3",
