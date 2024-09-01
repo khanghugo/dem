@@ -21,6 +21,15 @@ impl DemoWriter {
         }
     }
 
+    /// Consumes self I guess
+    /// 
+    /// Just a bandaid for now because [`Demo`] is not owned. 
+    pub fn write_to_bytes(mut self, demo: Demo) -> Vec<u8> {
+        self.write_demo(demo);
+
+        self.writer.data
+    }
+
     pub fn write_file(&mut self, demo: Demo) -> io::Result<()> {
         let mut file = fs::OpenOptions::new()
             .write(true)
