@@ -12,5 +12,6 @@ exclude = [ "src/tests" ]
 
 [dependencies]
 bitvec = "1.0.1"
+eyre = "0.6.12"
 hldemo = { git = "https://github.com/YaLTeR/hldemo-rs.git", rev = "cbc1efa212a4fc49c776304058efd07e0369caa7", version = "0.3.0" }
 nom = "7.1.3"

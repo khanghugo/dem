@@ -28,8 +28,16 @@
 //! // write demo
 //! write_demo!("my_new_demo", demo).unwrap();
 //! ```
-use std::{cell::RefCell, io};
+use std::{
+    cell::RefCell,
+    fs::OpenOptions,
+    io::{self, Read},
+    path::{Path, PathBuf},
+};
 
+use demo_writer::DemoWriter;
+use eyre::eyre;
+use hldemo::Demo;
 use nom::{combinator::all_consuming, multi::many0};
 use types::{ByteVec, CustomMessage, DeltaDecoderTable, NetMessage};
 
@@ -98,56 +106,36 @@ pub fn write_netmsg(i: Vec<NetMessage>, aux: &RefCell<Aux>) -> ByteVec {
 ///
 /// # Example
 /// ```no_run
-/// let demo = open_demo!("./tests/demotest.dem");
+/// let demo = open_demo("./tests/demotest.dem").unwrap();
 /// ```
-#[macro_export]
-macro_rules! open_demo {
-    ($name:literal) => {{
-        use std::fs::File;
-        use std::io::Read;
+pub fn open_demo(demo_path: impl AsRef<Path> + Into<PathBuf>) -> eyre::Result<Demo<'static>> {
+    let mut bytes = Vec::new();
 
-        let mut bytes = Vec::new();
-        let mut f = File::open($name).unwrap();
-        f.read_to_end(&mut bytes).unwrap();
+    let mut file = OpenOptions::new().read(true).open(demo_path)?;
+    file.read_to_end(&mut bytes)?;
 
-        $crate::hldemo::Demo::parse(bytes.leak()).unwrap()
-    }};
-
-    ($name:ident) => {{
-        use std::fs::File;
-        use std::io::Read;
-
-        let mut bytes = Vec::new();
-        let mut f = File::open($name).unwrap();
-        f.read_to_end(&mut bytes).unwrap();
-
-        $crate::hldemo::Demo::parse(bytes.leak()).unwrap()
-    }};
+    match hldemo::Demo::parse(bytes.leak()) {
+        Ok(demo) => Ok(demo),
+        Err(_) => Err(eyre!("cannot parse demo")),
+    }
 }
 
 /// Writes a demo
 ///
 /// # Example
 /// ```no_run
-/// let demo = open_demo!("./tests/demotest.dem");
+/// let demo = open_demo("./tests/demotest.dem").unwrap();
 /// // do your stuffs
-/// write_demo!("my_new_demo", demo).unwrap();
+/// write_demo("my_new_demo", demo).unwrap();
 /// ```
-#[macro_export]
-macro_rules! write_demo {
-    ($demo_name:literal, $demo:ident) => {{
-        use $crate::demo_writer::DemoWriter;
+///
+/// ### Warning, for the time being, the function would consume the demo so I can avoid doing lifetime stuffs (all because hldemo does not own data)
+pub fn write_demo(demo_path: impl AsRef<Path> + Into<PathBuf>, demo: Demo) -> eyre::Result<()> {
+    let mut out = DemoWriter::new(demo_path);
 
-        let mut out = DemoWriter::new(String::from($demo_name));
-        out.write_file($demo)
-    }};
+    out.write_file(demo)?;
 
-    ($demo_name:ident, $demo:ident) => {{
-        use $crate::demo_writer::DemoWriter;
-
-        let mut out = DemoWriter::new(String::from($demo_name));
-        out.write_file($demo)
-    }};
+    Ok(())
 }
 
 /// Writes a [`u32`] into [`types::BitVec`]
@@ -203,14 +191,16 @@ macro_rules! init_parse {
 
 #[cfg(test)]
 mod test {
+    use super::*;
+
     #[test]
-    fn open_demo() {
-        open_demo!("./tests/demotest.dem");
+    fn open() {
+        open_demo("./tests/demotest.dem").unwrap();
     }
 
     #[test]
-    fn write_demo() {
-        let dem = open_demo!("./tests/demotest.dem");
-        let _res = write_demo!("out.dem", dem).unwrap();
+    fn write() {
+        let dem = open_demo("./tests/demotest.dem").unwrap();
+        let _res = write_demo("out.dem", dem).unwrap();
     }
 }

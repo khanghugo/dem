@@ -8,15 +8,15 @@ use super::*;
 
 #[allow(dead_code)]
 pub struct DemoWriter {
-    pub filename: String,
+    pub filename: PathBuf,
     writer: ByteWriter,
 }
 
 #[allow(dead_code)]
 impl DemoWriter {
-    pub fn new(filename: String) -> DemoWriter {
+    pub fn new(path: impl AsRef<Path> + Into<PathBuf>) -> DemoWriter {
         DemoWriter {
-            filename,
+            filename: path.into(),
             writer: ByteWriter::new(),
         }
     }
