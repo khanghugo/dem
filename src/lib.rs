@@ -117,7 +117,7 @@ pub fn open_demo(demo_path: impl AsRef<Path> + Into<PathBuf>) -> eyre::Result<De
     open_demo_from_bytes(bytes.leak())
 }
 
-pub fn open_demo_from_bytes(bytes: &'static [u8]) -> eyre::Result<Demo<'static>> {
+pub fn open_demo_from_bytes(bytes: &[u8]) -> eyre::Result<Demo<'_>> {
     match hldemo::Demo::parse(bytes) {
         Ok(demo) => Ok(demo),
         Err(_) => Err(eyre!("cannot parse demo")),
