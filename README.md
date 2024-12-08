@@ -1,5 +1,7 @@
 # dem
 
+[![0.2.0](https://img.shields.io/crates/v/dem)](https://crates.io/crates/dem) [![Documentation](https://img.shields.io/badge/docs-docs.rs-brightgreen?link=https%3A%2F%2Fdocs.rs%2Fdem%2F0.2.0%2Fdem%2F)](https://docs.rs/dem/0.2.0/dem/)
+
 A complete GoldSrc demo parser and writer library
 
 ## Example
