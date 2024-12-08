@@ -105,8 +105,6 @@ macro_rules! nbit_str {
 
 #[cfg(test)]
 mod test {
-    use types::{EngineMessage, FrameData, MessageData};
-
     use super::*;
 
     #[test]
