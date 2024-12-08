@@ -5,7 +5,7 @@ impl Doer for TeTextMessage {
         29
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         let (
             i,
             (
@@ -57,7 +57,7 @@ impl Doer for TeTextMessage {
         ))
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_i8(self.channel);

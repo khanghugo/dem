@@ -5,7 +5,7 @@ impl Doer for SvcParticle {
         18
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(
             tuple((count(le_i16, 3), take(3usize), le_u8, le_u8)),
             |(origin, direction, count, color): (Vec<i16>, &[u8], _, _)| SvcParticle {
@@ -17,7 +17,7 @@ impl Doer for SvcParticle {
         )(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

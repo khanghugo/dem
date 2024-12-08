@@ -67,11 +67,11 @@ impl ByteWriter {
         }
     }
 
-    pub fn append_f32_array(&mut self, i: [f32; 3]) {
+    pub fn append_f32_slice(&mut self, i: &[f32]) {
         i.iter().for_each(|num| self.append_f32(*num));
     }
 
-    pub fn append_i32_array_4(&mut self, i: [i32; 4]) {
+    pub fn append_i32_slice(&mut self, i: &[i32]) {
         i.iter().for_each(|num| self.append_i32(*num));
     }
 }

@@ -2,7 +2,7 @@
 authors = [ "Khang Le <mkhangle20@gmail.com>" ]
 name = "dem"
 description = "GoldSrc demo parser and writer library"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 readme = "README.md"
 repository = "https://github.com/khanghugo/dem"
@@ -13,5 +13,4 @@ exclude = [ "src/tests" ]
 [dependencies]
 bitvec = "1.0.1"
 eyre = "0.6.12"
-hldemo = { git = "https://github.com/YaLTeR/hldemo-rs.git", rev = "cbc1efa212a4fc49c776304058efd07e0369caa7", version = "0.3.0" }
 nom = "7.1.3"

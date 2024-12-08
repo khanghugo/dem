@@ -5,7 +5,7 @@ impl Doer for SvcEventReliable {
         21
     }
 
-    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self> {
         let aux = aux.borrow();
 
         let mut br = BitReader::new(i);
@@ -33,7 +33,7 @@ impl Doer for SvcEventReliable {
         ))
     }
 
-    fn write(&self, aux: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, aux: AuxRefCell) -> ByteVec {
         let aux = aux.borrow();
 
         let mut writer = ByteWriter::new();

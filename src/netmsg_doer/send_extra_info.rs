@@ -5,7 +5,7 @@ impl Doer for SvcSendExtraInfo {
         54
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(tuple((null_string, le_u8)), |(fallback_dir, can_cheat)| {
             SvcSendExtraInfo {
                 fallback_dir: fallback_dir.to_vec(),
@@ -14,7 +14,7 @@ impl Doer for SvcSendExtraInfo {
         })(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

@@ -5,7 +5,7 @@ impl Doer for SvcWeaponAnim {
         35
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(
             tuple((le_i8, le_i8)),
             |(sequence_number, weapon_model_body_group)| SvcWeaponAnim {
@@ -15,7 +15,7 @@ impl Doer for SvcWeaponAnim {
         )(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

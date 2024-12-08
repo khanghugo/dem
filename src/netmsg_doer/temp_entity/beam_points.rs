@@ -5,7 +5,7 @@ impl Doer for TeBeamPoints {
         0
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(
             tuple((
                 count(le_i16, 3),
@@ -47,7 +47,7 @@ impl Doer for TeBeamPoints {
         )(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_i16_slice(self.start_position.as_slice());

@@ -9,7 +9,7 @@ impl Doer for SvcDeltaDescription {
         14
     }
 
-    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self> {
         let (i, name) = null_string(i)?;
         let (i, total_fields) = le_u16(i)?;
 
@@ -68,7 +68,7 @@ impl Doer for SvcDeltaDescription {
         ))
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

@@ -5,7 +5,7 @@ impl Doer for SvcServerInfo {
         11
     }
 
-    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self> {
         map(
             tuple((
                 le_i32,
@@ -58,7 +58,7 @@ impl Doer for SvcServerInfo {
         )(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

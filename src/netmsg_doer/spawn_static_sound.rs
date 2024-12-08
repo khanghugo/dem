@@ -5,7 +5,7 @@ impl Doer for SvcSpawnStaticSound {
         29
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(
             tuple((count(le_i16, 3), le_u16, le_u8, le_u8, le_u16, le_u8, le_u8)),
             |(origin, sound_index, volume, attenuation, entity_index, pitch, flags)| {
@@ -22,7 +22,7 @@ impl Doer for SvcSpawnStaticSound {
         )(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

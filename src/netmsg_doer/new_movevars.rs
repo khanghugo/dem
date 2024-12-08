@@ -5,7 +5,7 @@ impl Doer for SvcNewMovevars {
         44
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         // https://github.com/rust-bakery/nom/issues/1144
         map(
             tuple((
@@ -70,7 +70,7 @@ impl Doer for SvcNewMovevars {
         )(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

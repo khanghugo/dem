@@ -5,7 +5,7 @@ impl Doer for SvcRestore {
         33
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         let (i, (save_name, map_count)) = tuple((null_string, le_u8))(i)?;
         let (i, map_names) = count(map(null_string, |s| s.to_vec()), map_count as usize)(i)?;
 
@@ -19,7 +19,7 @@ impl Doer for SvcRestore {
         ))
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

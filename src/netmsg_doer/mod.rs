@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use nom::bytes::complete::take;
 use nom::combinator::{fail, map};
 use nom::error::context;
@@ -16,8 +14,7 @@ use crate::nom_helper::{null_string, Result};
 use crate::bit::{BitReader, BitSliceCast};
 use crate::byte_writer::ByteWriter;
 
-use crate::types::{NetMessage, UserMessage};
-use crate::Aux;
+use crate::types::{AuxRefCell, NetMessage, UserMessage};
 use crate::{
     bit::BitWriter,
     delta::{parse_delta, write_delta},
@@ -91,10 +88,10 @@ mod weapon_anim;
 
 pub trait Doer {
     fn id(&self) -> u8;
-    fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, Self>
+    fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self>
     where
         Self: Sized;
-    fn write(&self, aux: &RefCell<Aux>) -> ByteVec;
+    fn write(&self, aux: AuxRefCell) -> ByteVec;
 }
 
 macro_rules! wrap {
@@ -124,7 +121,7 @@ macro_rules! wrap_box {
 }
 
 impl NetMessage {
-    pub fn parse<'a>(i: &'a [u8], aux: &'a RefCell<Aux>) -> Result<'a, NetMessage> {
+    pub fn parse(i: &[u8], aux: AuxRefCell) -> Result<NetMessage> {
         let (i, type_) = le_u8(i)?;
 
         match type_ {
@@ -139,7 +136,7 @@ impl NetMessage {
         }
     }
 
-    pub fn write(&self, aux: &RefCell<Aux>) -> ByteVec {
+    pub fn write(&self, aux: AuxRefCell) -> ByteVec {
         match self {
             NetMessage::UserMessage(what) => what.write(aux),
             NetMessage::EngineMessage(what) => what.write(aux),
@@ -148,7 +145,7 @@ impl NetMessage {
 }
 
 impl UserMessage {
-    fn parse<'a>(i: &'a [u8], id: u8, aux: &'a RefCell<Aux>) -> Result<'a, UserMessage> {
+    fn parse(i: &[u8], id: u8, aux: AuxRefCell) -> Result<UserMessage> {
         let aux = aux.borrow();
 
         let custom_message = aux.custom_messages.get(&id);
@@ -177,7 +174,7 @@ impl UserMessage {
         ))
     }
 
-    fn write(&self, aux: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, aux: AuxRefCell) -> ByteVec {
         let aux = aux.borrow();
 
         let mut writer = ByteWriter::new();
@@ -197,7 +194,7 @@ impl UserMessage {
 }
 
 impl EngineMessage {
-    fn parse<'a>(i: &'a [u8], type_: u8, aux: &'a RefCell<Aux>) -> Result<'a, EngineMessage> {
+    fn parse(i: &[u8], type_: u8, aux: AuxRefCell) -> Result<EngineMessage> {
         let (i, res) = match type_ {
             0 => (i, EngineMessage::SvcBad),
             1 => (i, EngineMessage::SvcNop),
@@ -265,7 +262,7 @@ impl EngineMessage {
         Ok((i, res))
     }
 
-    fn write(&self, aux: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, aux: AuxRefCell) -> ByteVec {
         match self {
             EngineMessage::SvcBad => vec![self.id()],
             EngineMessage::SvcNop => vec![self.id()],

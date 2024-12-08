@@ -5,7 +5,7 @@ impl Doer for SvcSoundFade {
         48
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(
             tuple((le_u8, le_u8, le_u8, le_u8)),
             |(initial_percent, hold_time, fade_out_time, fade_in_time)| SvcSoundFade {
@@ -17,7 +17,7 @@ impl Doer for SvcSoundFade {
         )(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

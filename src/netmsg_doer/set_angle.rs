@@ -5,13 +5,13 @@ impl Doer for SvcSetAngle {
         10
     }
 
-    fn parse<'a>(i: &'a [u8], _: &'a RefCell<Aux>) -> Result<'a, Self> {
+    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(tuple((le_i16, le_i16, le_i16)), |(pitch, yaw, roll)| {
             SvcSetAngle { pitch, yaw, roll }
         })(i)
     }
 
-    fn write(&self, _: &RefCell<Aux>) -> ByteVec {
+    fn write(&self, _: AuxRefCell) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());
