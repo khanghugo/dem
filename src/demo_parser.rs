@@ -49,16 +49,27 @@ pub fn parse_demo(i: &[u8], should_parse_netmessage: bool) -> Result<Demo> {
 
     let file_start = i;
 
-    let (_, header) = parse_header(i)?;
+    let (i, header) = parse_header(i)?;
 
-    let directory_start = &file_start[header.directory_offset as usize..];
+    let (i, directory) = if header.directory_offset == 0 {
+        let frames_start = i;
 
-    let (i, directory) = parse_directory(
-        directory_start,
-        file_start,
-        should_parse_netmessage,
-        aux2.clone(),
-    )?;
+        parse_fallback_directory(
+            frames_start,
+            file_start,
+            should_parse_netmessage,
+            aux2.clone(),
+        )
+    } else {
+        let directory_start = &file_start[header.directory_offset as usize..];
+
+        parse_directory(
+            directory_start,
+            file_start,
+            should_parse_netmessage,
+            aux2.clone(),
+        )
+    }?;
 
     Ok((
         i,
@@ -120,6 +131,53 @@ pub fn parse_directory<'a>(
         count(local_parse_directory_entry, entry_count as usize),
         |entries| Directory { entries },
     )(i)
+}
+
+/// Parse a fallback directory for demo files that were not finalized by a client.
+pub fn parse_fallback_directory<'a>(
+    frames_start: &'a [u8],
+    file_start: &'a [u8],
+    should_parse_netmessage: bool,
+    aux: AuxRefCell,
+) -> Result<'a, Directory> {
+    let file_length = frames_start.len() as i32;
+    let frame_offset = (file_start.len() - frames_start.len()) as i32;
+
+    let mut frames: Vec<Frame> = vec![];
+    let mut frames_start = &frames_start[..];
+
+    loop {
+        match parse_frame(frames_start, should_parse_netmessage, aux.clone()) {
+            Ok((end_current_frame, frame)) => {
+                frames_start = end_current_frame;
+                frames.push(frame);
+
+                if end_current_frame.is_empty() {
+                    break;
+                }
+            }
+            Err(_) => break,
+        }
+    }
+
+    let fallback_entry = DirectoryEntry {
+        type_: -1,
+        description: "Fallback".into(),
+        flags: -1,
+        cd_track: -1,
+        track_time: 0.0,
+        frame_count: frames.len() as i32,
+        frame_offset,
+        file_length,
+        frames,
+    };
+
+    Ok((
+        &[],
+        Directory {
+            entries: vec![fallback_entry],
+        },
+    ))
 }
 
 pub fn parse_directory_entry<'a>(
