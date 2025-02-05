@@ -1,6 +1,6 @@
 # dem
 
-[![crates.io](https://img.shields.io/crates/v/dem)](https://crates.io/crates/dem) ![docs.rs](https://img.shields.io/docsrs/dem/latest?logo=brightgreen&link=https%3A%2F%2Fdocs.rs%2Fdem%2Flatest)
+[![crates.io](https://img.shields.io/crates/v/dem)](https://crates.io/crates/dem) [![docs.rs](https://img.shields.io/docsrs/dem/latest?logo=brightgreen&link=https%3A%2F%2Fdocs.rs%2Fdem%2Flatest)](https://docs.rs/dem)
 
 
 A complete GoldSrc demo parser and writer library
