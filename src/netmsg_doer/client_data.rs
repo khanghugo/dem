@@ -8,8 +8,21 @@ impl Doer for SvcClientData {
     }
 
     fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self> {
-        let mut br = BitReader::new(i);
         let aux = aux.borrow();
+
+        if aux.is_hltv {
+            return Ok((
+                i,
+                Self {
+                    has_delta_update_mask: false,
+                    delta_update_mask: None,
+                    client_data: Default::default(),
+                    weapon_data: None,
+                },
+            ));
+        }
+
+        let mut br = BitReader::new(i);
 
         let has_delta_update_mask = br.read_1_bit();
         let delta_update_mask = if has_delta_update_mask {
@@ -58,9 +71,14 @@ impl Doer for SvcClientData {
         let aux = aux.borrow();
 
         let mut writer = ByteWriter::new();
-        let mut bw = BitWriter::new();
 
         writer.append_u8(self.id());
+
+        if aux.is_hltv {
+            return writer.data;
+        }
+
+        let mut bw = BitWriter::new();
 
         bw.append_bit(self.has_delta_update_mask);
 
