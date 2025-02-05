@@ -2,7 +2,7 @@ use std::{ffi::OsStr, fs::OpenOptions, io::Write, path::Path};
 
 use crate::{
     byte_writer::ByteWriter,
-    types::{Demo, FrameData, MessageData, NetworkMessageType},
+    types::{Demo, FrameData, MessageData, NetworkMessageType, FALLBACK_DIRECTORY_ENTRY_TYPE},
 };
 
 impl Demo {
@@ -18,6 +18,7 @@ impl Demo {
 
         Ok(())
     }
+
     pub fn write_to_bytes(&self) -> Vec<u8> {
         let mut writer = ByteWriter::new();
 
@@ -37,6 +38,12 @@ impl Demo {
         writer.append_i32(0i32);
 
         let mut entry_offsets: Vec<usize> = Vec::new();
+
+        let mut has_fallback_directory =
+            match (self.directory.entries.len(), self.directory.entries.first()) {
+                (1, Some(entry)) => entry.type_ == FALLBACK_DIRECTORY_ENTRY_TYPE,
+                _ => false,
+            };
 
         for entry in &self.directory.entries {
             let mut has_written_next_section = false;
@@ -243,15 +250,19 @@ impl Demo {
                 }
             }
 
-            if !has_written_next_section {
+            if !has_fallback_directory && !has_written_next_section {
                 writer.append_u8(5u8);
                 writer.append_f32(0.);
                 writer.append_i32(0);
             }
         }
 
+        if has_fallback_directory {
+            return writer.data;
+        }
+
         // writing the directory entry at the end because now we have the offset
-        let director_offset = writer.get_offset();
+        let directory_offset = writer.get_offset();
         writer.append_i32(self.directory.entries.len() as i32);
 
         for (entry, new_offset) in self.directory.entries.iter().zip(entry_offsets.iter()) {
@@ -267,7 +278,7 @@ impl Demo {
 
         writer.data.splice(
             directory_offset_pos..directory_offset_pos + 4,
-            (director_offset as u32).to_le_bytes(),
+            (directory_offset as u32).to_le_bytes(),
         );
 
         writer.data

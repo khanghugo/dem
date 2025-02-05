@@ -67,6 +67,8 @@ pub struct Directory {
     pub entries: Vec<DirectoryEntry>,
 }
 
+pub const FALLBACK_DIRECTORY_ENTRY_TYPE: i32 = -1;
+
 #[derive(Debug, Clone)]
 pub struct DirectoryEntry {
     pub type_: i32,
@@ -1845,21 +1847,4 @@ pub struct SvcSendCvarValue {
 pub struct SvcSendCvarValue2 {
     pub request_id: u32,
     pub name: ByteVec,
-}
-
-/// Tells dem how to handle demo files that are missing directory metadata.
-///
-/// While recording a demo, frames are written continuously to the file as they are rendered in
-/// game. When the game client stops recording, the demo file is enriched with further details like
-/// directory entries. If the client crashes before this point, those details are not written, but
-/// much of the frame data is still intact.
-///
-/// A "fallback directory" collects all the parseable frames until the end of the file into a single
-/// synthetic [DirectoryEntry].
-pub enum MissingDirectoryBehavior {
-    /// Synthesize a directory from the available frame data in the file.
-    Autofix,
-
-    /// Treats unfinalized demo files as an error.
-    Error,
 }

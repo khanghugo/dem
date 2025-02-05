@@ -15,7 +15,7 @@ use crate::{
         Aux, AuxRefCell, ClientData, ConsoleCommand, Demo, DemoBuffer, DemoInfo, Directory,
         DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData, MoveVars,
         NetworkMessage, NetworkMessageType, RefParams, SequenceInfo, Sound, UserCmd,
-        WeaponAnimation,
+        WeaponAnimation, FALLBACK_DIRECTORY_ENTRY_TYPE,
     },
 };
 
@@ -161,8 +161,8 @@ pub fn parse_fallback_directory<'a>(
     }
 
     let fallback_entry = DirectoryEntry {
-        type_: -1,
-        description: "Fallback".into(),
+        type_: FALLBACK_DIRECTORY_ENTRY_TYPE,
+        description: vec![],
         flags: -1,
         cd_track: -1,
         track_time: 0.0,
