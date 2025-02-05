@@ -14,6 +14,12 @@ pub struct Aux {
     pub delta_decoders: DeltaDecoderTable,
     pub max_client: u8,
     pub custom_messages: CustomMessage,
+
+    /// True if the demo was recorded by an HLTV client, false otherwise.
+    ///
+    /// HLTV clients can receive different data from the game server for messages like
+    /// [SvcClientData], which affects parsing.
+    pub is_hltv: bool,
 }
 
 impl Aux {
@@ -22,6 +28,7 @@ impl Aux {
             delta_decoders: get_initial_delta(),
             max_client: 1,
             custom_messages: CustomMessage::new(),
+            is_hltv: false,
         }
     }
 
