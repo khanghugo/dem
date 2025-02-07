@@ -39,7 +39,7 @@ impl Demo {
 
         let mut entry_offsets: Vec<(usize, usize)> = vec![];
 
-         for entry in &self.directory.entries {
+        for entry in &self.directory.entries {
             let mut has_written_next_section = false;
 
             let entry_offset_start = writer.get_offset();
