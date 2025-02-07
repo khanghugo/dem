@@ -44,7 +44,7 @@ impl Doer for SvcServerInfo {
                     protocol,
                     spawn_count,
                     map_checksum,
-                    client_dll_hash: client_dll_hash.to_vec(),
+                    client_dll_hash: client_dll_hash.into(),
                     max_players,
                     player_index,
                     is_deathmatch,
@@ -66,7 +66,7 @@ impl Doer for SvcServerInfo {
         writer.append_i32(self.protocol);
         writer.append_i32(self.spawn_count);
         writer.append_i32(self.map_checksum);
-        writer.append_u8_slice(&self.client_dll_hash);
+        writer.append_u8_slice(self.client_dll_hash.padded(16).as_slice());
         writer.append_u8(self.max_players);
         writer.append_u8(self.player_index);
         writer.append_u8(self.is_deathmatch);

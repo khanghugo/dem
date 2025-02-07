@@ -12,7 +12,7 @@ impl Doer for SvcNewUserMsg {
                 let msg = Self {
                     index,
                     size,
-                    name: name.to_vec(),
+                    name: name.into(),
                 };
 
                 let mut aux = aux.borrow_mut();
@@ -33,7 +33,7 @@ impl Doer for SvcNewUserMsg {
 
         writer.append_u8(self.index);
         writer.append_i8(self.size);
-        writer.append_u8_slice(&self.name);
+        writer.append_u8_slice(self.name.padded(16).as_slice());
 
         writer.data
     }

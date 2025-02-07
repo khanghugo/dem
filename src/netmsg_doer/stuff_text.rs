@@ -7,7 +7,7 @@ impl Doer for SvcStuffText {
 
     fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(null_string, |command| SvcStuffText {
-            command: command.to_vec(),
+            command: command.into(),
         })(i)
     }
 
@@ -16,7 +16,7 @@ impl Doer for SvcStuffText {
 
         writer.append_u8(self.id());
 
-        writer.append_u8_slice(&self.command);
+        writer.append_u8_slice(self.command.as_slice());
 
         writer.data
     }

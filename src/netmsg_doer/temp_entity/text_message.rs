@@ -52,7 +52,7 @@ impl Doer for TeTextMessage {
                 fade_out_time,
                 hold_time,
                 effect_time,
-                message: message.to_vec(),
+                message: message.into(),
             },
         ))
     }
@@ -74,7 +74,7 @@ impl Doer for TeTextMessage {
             writer.append_i16(self.effect_time.unwrap());
         }
 
-        writer.append_u8_slice(&self.message);
+        writer.append_u8_slice(self.message.as_slice());
 
         writer.data
     }

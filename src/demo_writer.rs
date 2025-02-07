@@ -28,8 +28,8 @@ impl Demo {
         // header
         writer.append_i32(self.header.demo_protocol);
         writer.append_i32(self.header.network_protocol);
-        writer.append_u8_slice(self.header.map_name.as_slice());
-        writer.append_u8_slice(self.header.game_directory.as_slice());
+        writer.append_u8_slice(self.header.map_name.padded(260).as_slice());
+        writer.append_u8_slice(self.header.game_directory.padded(260).as_slice());
         writer.append_u32(self.header.map_checksum);
 
         // directory
@@ -68,7 +68,7 @@ impl Demo {
                 match &frame.frame_data {
                     FrameData::DemoStart => (),
                     FrameData::ConsoleCommand(frame) => {
-                        writer.append_u8_slice(frame.command.as_slice())
+                        writer.append_u8_slice(frame.command.padded(64).as_slice())
                     }
                     FrameData::ClientData(frame) => {
                         writer.append_f32_slice(frame.origin.as_slice());
@@ -185,7 +185,7 @@ impl Demo {
                         writer.append_f32(data.info.movevars.zmax);
                         writer.append_f32(data.info.movevars.wave_height);
                         writer.append_i32(data.info.movevars.footsteps);
-                        writer.append_u8_slice(data.info.movevars.sky_name.as_slice());
+                        writer.append_u8_slice(data.info.movevars.sky_name.padded(32).as_slice());
                         writer.append_f32(data.info.movevars.rollangle);
                         writer.append_f32(data.info.movevars.rollspeed);
                         writer.append_f32(data.info.movevars.skycolor[0]);
@@ -262,7 +262,7 @@ impl Demo {
             self.directory.entries.iter().zip(entry_offsets.iter())
         {
             writer.append_i32(entry.type_);
-            writer.append_u8_slice(entry.description.as_slice());
+            writer.append_u8_slice(entry.description.padded(64).as_slice());
             writer.append_i32(entry.flags);
             writer.append_i32(entry.cd_track);
             writer.append_f32(entry.track_time);

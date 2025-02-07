@@ -108,8 +108,8 @@ pub fn parse_header(i: &[u8]) -> Result<Header> {
             magic: magic.to_vec(),
             demo_protocol,
             network_protocol,
-            map_name: map_name.to_vec(),
-            game_directory: game_directory.to_vec(),
+            map_name: map_name.into(),
+            game_directory: game_directory.into(),
             map_checksum,
             directory_offset,
         },
@@ -168,7 +168,7 @@ pub fn parse_fallback_directory<'a>(
 
     let loading_entry = DirectoryEntry {
         type_: 0,
-        description: format!("{:\x00<64}", "LOADING").into(),
+        description: "LOADING".into(),
         flags: -1,
         cd_track: -1,
         track_time: 0.,
@@ -186,7 +186,7 @@ pub fn parse_fallback_directory<'a>(
 
     let playback_entry = DirectoryEntry {
         type_: 1,
-        description: format!("{:\x00<64}", "Playback").into(),
+        description: "Playback".into(),
         flags: -1,
         cd_track: -1,
         track_time: 0.,
@@ -249,7 +249,7 @@ pub fn parse_directory_entry<'a>(
         end_of_current_directory_entry,
         DirectoryEntry {
             type_,
-            description: description.to_vec(),
+            description: description.into(),
             flags,
             cd_track,
             track_time,
@@ -297,7 +297,7 @@ pub fn parse_frame(i: &[u8], should_parse_netmessage: bool, aux: AuxRefCell) -> 
 
 pub fn parse_console_command(i: &[u8]) -> Result<ConsoleCommand> {
     map(take(64usize), |command: &[u8]| ConsoleCommand {
-        command: command.to_vec(),
+        command: command.into(),
     })(i)
 }
 
@@ -685,7 +685,7 @@ pub fn parse_movevars(i: &[u8]) -> Result<MoveVars> {
             zmax,
             wave_height,
             footsteps,
-            sky_name: sky_name.to_vec(),
+            sky_name: sky_name.into(),
             rollangle,
             rollspeed,
             skycolor,

@@ -11,8 +11,8 @@ impl Doer for SvcUpdateUserInfo {
             |(index, id, user_info, cd_key_hash)| SvcUpdateUserInfo {
                 index,
                 id,
-                user_info: user_info.to_vec(),
-                cd_key_hash: cd_key_hash.to_vec(),
+                user_info: user_info.into(),
+                cd_key_hash: cd_key_hash.into(),
             },
         )(i)
     }
@@ -24,8 +24,8 @@ impl Doer for SvcUpdateUserInfo {
 
         writer.append_u8(self.index);
         writer.append_u32(self.id);
-        writer.append_u8_slice(&self.user_info);
-        writer.append_u8_slice(&self.cd_key_hash);
+        writer.append_u8_slice(self.user_info.as_slice());
+        writer.append_u8_slice(self.cd_key_hash.padded(16).as_slice());
 
         writer.data
     }

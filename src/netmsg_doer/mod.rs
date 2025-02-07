@@ -165,7 +165,7 @@ impl UserMessage {
             UserMessage {
                 id,
                 name: if is_set {
-                    custom_message.unwrap().name.clone()
+                    custom_message.unwrap().name.clone().into()
                 } else {
                     b"\0".to_vec()
                 },

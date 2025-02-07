@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, str::from_utf8};
 
 use bitvec::{order::Lsb0, slice::BitSlice as _BitSlice, vec::BitVec as _BitVec};
 
@@ -55,9 +55,9 @@ pub struct Header {
     pub demo_protocol: i32,
     pub network_protocol: i32,
     /// `[u8; 260]`
-    pub map_name: Vec<u8>,
+    pub map_name: ByteString,
     /// `[u8; 260]`
-    pub game_directory: Vec<u8>,
+    pub game_directory: ByteString,
     pub map_checksum: u32,
     pub directory_offset: i32,
 }
@@ -71,7 +71,7 @@ pub struct Directory {
 pub struct DirectoryEntry {
     pub type_: i32,
     /// `[u8; 64]`
-    pub description: Vec<u8>,
+    pub description: ByteString,
     pub flags: i32,
     pub cd_track: i32,
     pub track_time: f32,
@@ -104,7 +104,7 @@ pub enum FrameData {
 #[derive(Debug, Clone)]
 pub struct ConsoleCommand {
     /// `[u8; 64]`
-    pub command: Vec<u8>,
+    pub command: ByteString,
 }
 
 /// `[T; 3]`
@@ -284,7 +284,7 @@ pub struct MoveVars {
     pub wave_height: f32,
     pub footsteps: i32,
     /// `[u8; 32]`
-    pub sky_name: Vec<u8>,
+    pub sky_name: ByteString,
     pub rollangle: f32,
     pub rollspeed: f32,
     pub skycolor: Point<f32>,
@@ -510,13 +510,13 @@ pub struct SvcTime {
 /// SVC_PRINT 8
 #[derive(Debug, Clone)]
 pub struct SvcPrint {
-    pub message: ByteVec,
+    pub message: ByteString,
 }
 
 /// SVC_STUFFTEXT 9
 #[derive(Debug, Clone)]
 pub struct SvcStuffText {
-    pub command: ByteVec,
+    pub command: ByteString,
 }
 
 /// SVC_SETANGLE 10
@@ -534,7 +534,7 @@ pub struct SvcServerInfo {
     pub spawn_count: i32,
     pub map_checksum: i32,
     /// `[u8; 16]`
-    pub client_dll_hash: ByteVec,
+    pub client_dll_hash: ByteString,
     pub max_players: u8,
     pub player_index: u8,
     pub is_deathmatch: u8,
@@ -557,9 +557,9 @@ pub struct SvcLightStyle {
 pub struct SvcUpdateUserInfo {
     pub index: u8,
     pub id: u32,
-    pub user_info: ByteVec,
+    pub user_info: ByteString,
     /// `[u8; 16]`
-    pub cd_key_hash: ByteVec,
+    pub cd_key_hash: ByteString,
 }
 
 /// SVC_DELTADESCRIPTION 14
@@ -1201,7 +1201,7 @@ pub struct TeTextMessage {
     pub fade_out_time: i16,
     pub hold_time: i16,
     pub effect_time: Option<i16>,
-    pub message: ByteVec,
+    pub message: ByteString,
 }
 
 /// TE_LINE 30
@@ -1627,7 +1627,7 @@ pub struct SvcNewUserMsg {
     // weird but it's for consistency
     pub size: i8,
     /// `[u8; 16]`
-    pub name: ByteVec,
+    pub name: ByteString,
 }
 
 /// SVC_PACKETENTITIES 40
@@ -1845,4 +1845,65 @@ pub struct SvcSendCvarValue {
 pub struct SvcSendCvarValue2 {
     pub request_id: u32,
     pub name: ByteVec,
+}
+
+#[derive(Clone)]
+pub struct ByteString(pub ByteVec);
+
+impl ByteString {
+    pub fn to_str(&self) -> eyre::Result<&str> {
+        from_utf8(self.0.as_slice()).map_err(|err| err.into())
+    }
+
+    pub fn as_slice(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+
+    pub fn padded(&self, size: usize) -> Self {
+        let mut res = self.clone();
+
+        if size == res.0.len() {
+            return res;
+        }
+
+        res.0.resize(size, 0);
+
+        // not sure if this is needed
+        // res.0[size - 1] = 0;
+
+        res
+    }
+}
+
+impl std::fmt::Debug for ByteString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("ByteString")
+            .field(&self.0)
+            .field(&self.to_str().unwrap_or("cannot print"))
+            .finish()
+    }
+}
+
+impl From<&[u8]> for ByteString {
+    fn from(value: &[u8]) -> Self {
+        ByteString(value.to_vec())
+    }
+}
+
+impl From<Vec<u8>> for ByteString {
+    fn from(value: Vec<u8>) -> Self {
+        ByteString(value)
+    }
+}
+
+impl From<&str> for ByteString {
+    fn from(value: &str) -> Self {
+        value.as_bytes().into()
+    }
+}
+
+impl From<ByteString> for Vec<u8> {
+    fn from(value: ByteString) -> Self {
+        value.0
+    }
 }

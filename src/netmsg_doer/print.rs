@@ -7,7 +7,7 @@ impl Doer for SvcPrint {
 
     fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
         map(null_string, |message| SvcPrint {
-            message: message.to_vec(),
+            message: message.into(),
         })(i)
     }
 
@@ -16,7 +16,7 @@ impl Doer for SvcPrint {
 
         writer.append_u8(self.id());
 
-        writer.append_u8_slice(&self.message);
+        writer.append_u8_slice(self.message.as_slice());
 
         writer.data
     }
