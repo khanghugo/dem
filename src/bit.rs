@@ -63,11 +63,7 @@ impl BitReader {
 
     /// Returns the number of bits read into bytes.
     pub fn get_consumed_bytes(&self) -> usize {
-        let current_bit = self.get_offset();
-        let modulo = current_bit % 8;
-        let remaining_bits = if modulo == 0 { 0 } else { 8 - modulo };
-
-        (current_bit + remaining_bits) / 8
+        (self.get_offset() + 7) / 8
     }
 }
 
