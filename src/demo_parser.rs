@@ -2,10 +2,8 @@ use std::{ffi::OsStr, fs::OpenOptions, io::Read, path::Path};
 
 use nom::{
     bytes::complete::take,
-    combinator::map,
-    combinator::verify,
-    multi::count,
-    multi::{many0, many_till},
+    combinator::{map, verify},
+    multi::{count, many0, many_till},
     number::complete::{le_f32, le_i16, le_i32, le_i8, le_u16, le_u32, le_u8},
     sequence::tuple,
 };
@@ -136,26 +134,33 @@ pub fn parse_directory<'a>(
 }
 
 /// Parse a fallback directory for demo files that were not finalized by a client.
+///
+/// Unfinalized demos have the following differences from finalized demos:
+///
+/// - Directory metadata is not yet written
+///   - Directory offset is 0
+///   - Number of entries is 0
+///   - Entry metadata is missing
+///  - A terminating NextSection frame for the current entry is not yet written
+///
+/// This parser reconstructs those details from the existing frame data so frames can be organized
+/// into individual directory entries.
 pub fn parse_fallback_directory<'a>(
     frames_start: &'a [u8],
-    file_start: &'a [u8],
+    _file_start: &'a [u8],
     should_parse_netmessage: bool,
     aux: AuxRefCell,
 ) -> Result<'a, Directory> {
-    let parse_frame = |i| parse_frame(i, should_parse_netmessage, aux.clone());
-
-    let loading_entry_start = frames_start;
+    let parser = |i| parse_frame(i, should_parse_netmessage, aux.clone());
 
     let (i, (mut loading_frames, next_section_frame)) = many_till(
-        parse_frame,
-        verify(parse_frame, |frame| {
+        parser,
+        verify(parser, |frame| {
             matches!(frame.frame_data, FrameData::NextSection)
         }),
     )(frames_start)?;
 
     loading_frames.push(next_section_frame);
-
-    let loading_entry_end = i;
 
     let loading_entry = DirectoryEntry {
         type_: 0,
@@ -163,17 +168,17 @@ pub fn parse_fallback_directory<'a>(
         flags: -1,
         cd_track: -1,
         track_time: 0.,
-        frame_count: loading_frames.len() as i32,
-        frame_offset: (file_start.len() - loading_entry_start.len()) as i32,
-        file_length: (loading_entry_start.len() - loading_entry_end.len()) as i32,
         frames: loading_frames,
+
+        // These properties should only be computed by the writer?
+        frame_count: 0,
+        frame_offset: 0,
+        file_length: 0,
     };
 
-    let playback_entry_start = i;
+    let (i, playback_frames) = many0(parser)(i)?;
 
-    let (i, playback_frames) = many0(parse_frame)(i)?;
-
-    let playback_entry_end = i;
+    println!("leftover bytes = {:?}", i.to_vec());
 
     let playback_entry = DirectoryEntry {
         type_: 1,
@@ -181,10 +186,12 @@ pub fn parse_fallback_directory<'a>(
         flags: -1,
         cd_track: -1,
         track_time: 0.,
-        frame_count: playback_frames.len() as i32,
-        frame_offset: (file_start.len() - playback_entry_start.len()) as i32,
-        file_length: (playback_entry_start.len() - playback_entry_end.len()) as i32,
         frames: playback_frames,
+
+        // These properties should only be computed by the writer?
+        frame_count: 0,
+        frame_offset: 0,
+        file_length: 0,
     };
 
     Ok((

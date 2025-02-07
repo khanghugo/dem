@@ -39,9 +39,7 @@ impl Demo {
 
         let mut entry_offsets: Vec<(usize, usize)> = vec![];
 
-        let mut entries = self.directory.entries.iter().peekable();
-
-        while let Some(entry) = entries.next() {
+         for entry in &self.directory.entries {
             let mut has_written_next_section = false;
 
             let entry_offset_start = writer.get_offset();
@@ -246,7 +244,7 @@ impl Demo {
                 }
             }
 
-            if !has_written_next_section && matches!(entries.peek(), Some(_)) {
+            if !has_written_next_section {
                 writer.append_u8(5u8);
                 writer.append_f32(0.);
                 writer.append_i32(0);
