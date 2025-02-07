@@ -18,6 +18,7 @@ impl Demo {
 
         Ok(())
     }
+
     pub fn write_to_bytes(&self) -> Vec<u8> {
         let mut writer = ByteWriter::new();
 
@@ -36,12 +37,12 @@ impl Demo {
         let directory_offset_pos = writer.get_offset();
         writer.append_i32(0i32);
 
-        let mut entry_offsets: Vec<usize> = Vec::new();
+        let mut entry_offsets: Vec<(usize, usize)> = vec![];
 
         for entry in &self.directory.entries {
             let mut has_written_next_section = false;
 
-            entry_offsets.push(writer.get_offset());
+            let entry_offset_start = writer.get_offset();
 
             for frame in &entry.frames {
                 match frame.frame_data {
@@ -248,26 +249,32 @@ impl Demo {
                 writer.append_f32(0.);
                 writer.append_i32(0);
             }
+
+            entry_offsets.push((entry_offset_start, writer.get_offset()));
         }
 
         // writing the directory entry at the end because now we have the offset
-        let director_offset = writer.get_offset();
+        let directory_offset = writer.get_offset();
+
         writer.append_i32(self.directory.entries.len() as i32);
 
-        for (entry, new_offset) in self.directory.entries.iter().zip(entry_offsets.iter()) {
+        for (entry, (offset_start, offset_end)) in
+            self.directory.entries.iter().zip(entry_offsets.iter())
+        {
             writer.append_i32(entry.type_);
             writer.append_u8_slice(entry.description.as_slice());
             writer.append_i32(entry.flags);
             writer.append_i32(entry.cd_track);
             writer.append_f32(entry.track_time);
-            writer.append_i32(entry.frame_count);
-            writer.append_i32(*new_offset as i32);
-            writer.append_i32(entry.file_length);
+
+            writer.append_i32(entry.frames.len() as i32);
+            writer.append_i32(*offset_start as i32);
+            writer.append_i32((offset_end - offset_start) as i32);
         }
 
         writer.data.splice(
             directory_offset_pos..directory_offset_pos + 4,
-            (director_offset as u32).to_le_bytes(),
+            (directory_offset as u32).to_le_bytes(),
         );
 
         writer.data
