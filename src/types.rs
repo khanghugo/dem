@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc, str::from_utf8};
+use std::{cell::RefCell, collections::HashMap, ffi::CStr, rc::Rc};
 
 use bitvec::{order::Lsb0, slice::BitSlice as _BitSlice, vec::BitVec as _BitVec};
 
@@ -1852,7 +1852,10 @@ pub struct ByteString(pub ByteVec);
 
 impl ByteString {
     pub fn to_str(&self) -> eyre::Result<&str> {
-        from_utf8(self.0.as_slice()).map_err(|err| err.into())
+        // wtf is this syntax?
+        CStr::from_bytes_until_nul(self.0.as_slice())
+            .map_err(|err| eyre::eyre!(err))
+            .and_then(|cstr| Ok(cstr.to_str()?))
     }
 
     pub fn as_slice(&self) -> &[u8] {
@@ -1878,8 +1881,8 @@ impl ByteString {
 impl std::fmt::Debug for ByteString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("ByteString")
+            .field(&self.to_str().unwrap_or("cannot print").trim())
             .field(&self.0)
-            .field(&self.to_str().unwrap_or("cannot print"))
             .finish()
     }
 }
