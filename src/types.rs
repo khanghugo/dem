@@ -67,8 +67,6 @@ pub struct Directory {
     pub entries: Vec<DirectoryEntry>,
 }
 
-pub const FALLBACK_DIRECTORY_ENTRY_TYPE: i32 = -1;
-
 #[derive(Debug, Clone)]
 pub struct DirectoryEntry {
     pub type_: i32,

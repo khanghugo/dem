@@ -143,15 +143,17 @@ pub fn parse_directory<'a>(
 ///   - Entry metadata is missing
 ///  - A terminating NextSection frame for the current entry is not yet written
 ///
-/// This parser reconstructs those details from the existing frame data so frames can be organized
-/// into individual directory entries.
+/// This parser reconstructs the missing details from frame data so they can be organized into
+/// individual directory entries.
 pub fn parse_fallback_directory<'a>(
     frames_start: &'a [u8],
-    _file_start: &'a [u8],
+    file_start: &'a [u8],
     should_parse_netmessage: bool,
     aux: AuxRefCell,
 ) -> Result<'a, Directory> {
     let parser = |i| parse_frame(i, should_parse_netmessage, aux.clone());
+
+    let loading_entry_start = frames_start;
 
     let (i, (mut loading_frames, next_section_frame)) = many_till(
         parser,
@@ -162,23 +164,25 @@ pub fn parse_fallback_directory<'a>(
 
     loading_frames.push(next_section_frame);
 
+    let loading_entry_end = i;
+
     let loading_entry = DirectoryEntry {
         type_: 0,
         description: format!("{:\x00<64}", "LOADING").into(),
         flags: -1,
         cd_track: -1,
         track_time: 0.,
-        frames: loading_frames,
 
-        // These properties should only be computed by the writer?
-        frame_count: 0,
-        frame_offset: 0,
-        file_length: 0,
+        frame_count: loading_frames.len() as i32,
+        frame_offset: (file_start.len() - loading_entry_start.len()) as i32,
+        file_length: (loading_entry_start.len() - loading_entry_end.len()) as i32,
+
+        frames: loading_frames,
     };
 
+    let playback_entry_start = i;
     let (i, playback_frames) = many0(parser)(i)?;
-
-    println!("leftover bytes = {:?}", i.to_vec());
+    let playback_entry_end = i;
 
     let playback_entry = DirectoryEntry {
         type_: 1,
@@ -186,12 +190,12 @@ pub fn parse_fallback_directory<'a>(
         flags: -1,
         cd_track: -1,
         track_time: 0.,
-        frames: playback_frames,
 
-        // These properties should only be computed by the writer?
-        frame_count: 0,
-        frame_offset: 0,
-        file_length: 0,
+        frame_count: playback_frames.len() as i32,
+        frame_offset: (file_start.len() - playback_entry_start.len()) as i32,
+        file_length: (playback_entry_start.len() - playback_entry_end.len()) as i32,
+
+        frames: playback_frames,
     };
 
     Ok((
