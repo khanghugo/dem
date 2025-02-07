@@ -3,7 +3,9 @@ use std::{ffi::OsStr, fs::OpenOptions, io::Read, path::Path};
 use nom::{
     bytes::complete::take,
     combinator::map,
+    combinator::verify,
     multi::count,
+    multi::{many0, many_till},
     number::complete::{le_f32, le_i16, le_i32, le_i8, le_u16, le_u32, le_u8},
     sequence::tuple,
 };
@@ -15,7 +17,7 @@ use crate::{
         Aux, AuxRefCell, ClientData, ConsoleCommand, Demo, DemoBuffer, DemoInfo, Directory,
         DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData, MoveVars,
         NetworkMessage, NetworkMessageType, RefParams, SequenceInfo, Sound, UserCmd,
-        WeaponAnimation, FALLBACK_DIRECTORY_ENTRY_TYPE,
+        WeaponAnimation,
     },
 };
 
@@ -140,42 +142,55 @@ pub fn parse_fallback_directory<'a>(
     should_parse_netmessage: bool,
     aux: AuxRefCell,
 ) -> Result<'a, Directory> {
-    let file_length = frames_start.len() as i32;
-    let frame_offset = (file_start.len() - frames_start.len()) as i32;
+    let parse_frame = |i| parse_frame(i, should_parse_netmessage, aux.clone());
 
-    let mut frames: Vec<Frame> = vec![];
-    let mut frames_start = &frames_start[..];
+    let loading_entry_start = frames_start;
 
-    loop {
-        match parse_frame(frames_start, should_parse_netmessage, aux.clone()) {
-            Ok((end_current_frame, frame)) => {
-                frames_start = end_current_frame;
-                frames.push(frame);
+    let (i, (mut loading_frames, next_section_frame)) = many_till(
+        parse_frame,
+        verify(parse_frame, |frame| {
+            matches!(frame.frame_data, FrameData::NextSection)
+        }),
+    )(frames_start)?;
 
-                if end_current_frame.is_empty() {
-                    break;
-                }
-            }
-            Err(_) => break,
-        }
-    }
+    loading_frames.push(next_section_frame);
 
-    let fallback_entry = DirectoryEntry {
-        type_: FALLBACK_DIRECTORY_ENTRY_TYPE,
-        description: vec![],
+    let loading_entry_end = i;
+
+    let loading_entry = DirectoryEntry {
+        type_: 0,
+        description: format!("{:\x00<64}", "LOADING").into(),
         flags: -1,
         cd_track: -1,
-        track_time: 0.0,
-        frame_count: frames.len() as i32,
-        frame_offset,
-        file_length,
-        frames,
+        track_time: 0.,
+        frame_count: loading_frames.len() as i32,
+        frame_offset: (file_start.len() - loading_entry_start.len()) as i32,
+        file_length: (loading_entry_start.len() - loading_entry_end.len()) as i32,
+        frames: loading_frames,
+    };
+
+    let playback_entry_start = i;
+
+    let (i, playback_frames) = many0(parse_frame)(i)?;
+
+    let playback_entry_end = i;
+
+    let playback_entry = DirectoryEntry {
+        type_: 1,
+        description: format!("{:\x00<64}", "Playback").into(),
+        flags: -1,
+        cd_track: -1,
+        track_time: 0.,
+        frame_count: playback_frames.len() as i32,
+        frame_offset: (file_start.len() - playback_entry_start.len()) as i32,
+        file_length: (playback_entry_start.len() - playback_entry_end.len()) as i32,
+        frames: playback_frames,
     };
 
     Ok((
-        &[],
+        i,
         Directory {
-            entries: vec![fallback_entry],
+            entries: vec![loading_entry, playback_entry],
         },
     ))
 }

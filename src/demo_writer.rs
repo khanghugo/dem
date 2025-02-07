@@ -2,7 +2,7 @@ use std::{ffi::OsStr, fs::OpenOptions, io::Write, path::Path};
 
 use crate::{
     byte_writer::ByteWriter,
-    types::{Demo, FrameData, MessageData, NetworkMessageType, FALLBACK_DIRECTORY_ENTRY_TYPE},
+    types::{Demo, FrameData, MessageData, NetworkMessageType},
 };
 
 impl Demo {
@@ -37,18 +37,14 @@ impl Demo {
         let directory_offset_pos = writer.get_offset();
         writer.append_i32(0i32);
 
-        let mut entry_offsets: Vec<usize> = Vec::new();
+        let mut entry_offsets: Vec<(usize, usize)> = vec![];
 
-        let mut has_fallback_directory =
-            match (self.directory.entries.len(), self.directory.entries.first()) {
-                (1, Some(entry)) => entry.type_ == FALLBACK_DIRECTORY_ENTRY_TYPE,
-                _ => false,
-            };
+        let mut entries = self.directory.entries.iter().peekable();
 
-        for entry in &self.directory.entries {
+        while let Some(entry) = entries.next() {
             let mut has_written_next_section = false;
 
-            entry_offsets.push(writer.get_offset());
+            let entry_offset_start = writer.get_offset();
 
             for frame in &entry.frames {
                 match frame.frame_data {
@@ -250,30 +246,32 @@ impl Demo {
                 }
             }
 
-            if !has_fallback_directory && !has_written_next_section {
+            if !has_written_next_section && matches!(entries.peek(), Some(_)) {
                 writer.append_u8(5u8);
                 writer.append_f32(0.);
                 writer.append_i32(0);
             }
-        }
 
-        if has_fallback_directory {
-            return writer.data;
+            entry_offsets.push((entry_offset_start, writer.get_offset()));
         }
 
         // writing the directory entry at the end because now we have the offset
         let directory_offset = writer.get_offset();
+
         writer.append_i32(self.directory.entries.len() as i32);
 
-        for (entry, new_offset) in self.directory.entries.iter().zip(entry_offsets.iter()) {
+        for (entry, (offset_start, offset_end)) in
+            self.directory.entries.iter().zip(entry_offsets.iter())
+        {
             writer.append_i32(entry.type_);
             writer.append_u8_slice(entry.description.as_slice());
             writer.append_i32(entry.flags);
             writer.append_i32(entry.cd_track);
             writer.append_f32(entry.track_time);
-            writer.append_i32(entry.frame_count);
-            writer.append_i32(*new_offset as i32);
-            writer.append_i32(entry.file_length);
+
+            writer.append_i32(entry.frames.len() as i32);
+            writer.append_i32(*offset_start as i32);
+            writer.append_i32((offset_end - offset_start) as i32);
         }
 
         writer.data.splice(
