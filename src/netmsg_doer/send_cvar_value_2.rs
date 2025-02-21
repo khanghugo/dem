@@ -9,7 +9,7 @@ impl Doer for SvcSendCvarValue2 {
         map(tuple((le_u32, null_string)), |(request_id, name)| {
             SvcSendCvarValue2 {
                 request_id,
-                name: name.to_vec(),
+                name: name.into(),
             }
         })(i)
     }
@@ -20,7 +20,7 @@ impl Doer for SvcSendCvarValue2 {
         writer.append_u8(self.id());
 
         writer.append_u32(self.request_id);
-        writer.append_u8_slice(&self.name);
+        writer.append_u8_slice(self.name.as_slice());
 
         writer.data
     }

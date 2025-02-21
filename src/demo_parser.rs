@@ -13,9 +13,9 @@ use crate::{
     parse_netmsg,
     types::{
         Aux, AuxRefCell, ClientData, ConsoleCommand, Demo, DemoBuffer, DemoInfo, Directory,
-        DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData, MoveVars,
-        NetworkMessage, NetworkMessageType, RefParams, SequenceInfo, Sound, UserCmd,
-        WeaponAnimation,
+        DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData,
+        MessageDataParseMode, MoveVars, NetworkMessage, NetworkMessageType, RefParams,
+        SequenceInfo, Sound, UserCmd, WeaponAnimation,
     },
 };
 
@@ -23,28 +23,28 @@ impl Demo {
     /// It is faster to parse netmessage because it just is for some reasons
     pub fn parse_from_file(
         path: impl AsRef<OsStr> + AsRef<Path>,
-        should_parse_netmessage: bool,
+        netmsg_parse_mode: MessageDataParseMode,
     ) -> eyre::Result<Self> {
         let mut file = OpenOptions::new().read(true).open(path)?;
         let mut bytes: Vec<u8> = vec![];
 
         file.read_to_end(&mut bytes)?;
 
-        Self::parse_from_bytes(bytes.as_slice(), should_parse_netmessage)
+        Self::parse_from_bytes(bytes.as_slice(), netmsg_parse_mode)
     }
 
     pub fn parse_from_bytes(
         demo_bytes: &[u8],
-        should_parse_netmessage: bool,
+        netmsg_parse_mode: MessageDataParseMode,
     ) -> eyre::Result<Self> {
-        match parse_demo(demo_bytes, should_parse_netmessage) {
+        match parse_demo(demo_bytes, netmsg_parse_mode) {
             Ok((_, demo)) => Ok(demo),
             Err(err) => Err(eyre::eyre!("cannot parse demo: {}", err)),
         }
     }
 }
 
-pub fn parse_demo(i: &[u8], should_parse_netmessage: bool) -> Result<Demo> {
+pub fn parse_demo(i: &[u8], netmsg_parse_mode: MessageDataParseMode) -> Result<Demo> {
     let aux2 = Aux::new2();
 
     let file_start = i;
@@ -54,21 +54,11 @@ pub fn parse_demo(i: &[u8], should_parse_netmessage: bool) -> Result<Demo> {
     let (i, directory) = if header.directory_offset == 0 {
         let frames_start = i;
 
-        parse_fallback_directory(
-            frames_start,
-            file_start,
-            should_parse_netmessage,
-            aux2.clone(),
-        )
+        parse_fallback_directory(frames_start, file_start, netmsg_parse_mode, aux2.clone())
     } else {
         let directory_start = &file_start[header.directory_offset as usize..];
 
-        parse_directory(
-            directory_start,
-            file_start,
-            should_parse_netmessage,
-            aux2.clone(),
-        )
+        parse_directory(directory_start, file_start, netmsg_parse_mode, aux2.clone())
     }?;
 
     Ok((
@@ -119,13 +109,13 @@ pub fn parse_header(i: &[u8]) -> Result<Header> {
 pub fn parse_directory<'a>(
     i: &'a [u8],
     file_start: &'a [u8],
-    should_parse_netmessage: bool,
+    netmsg_parse_mode: MessageDataParseMode,
     aux: AuxRefCell,
 ) -> Result<'a, Directory> {
     let (i, entry_count) = le_u32(i)?;
 
     let local_parse_directory_entry =
-        |i| parse_directory_entry(i, file_start, should_parse_netmessage, aux.clone());
+        |i| parse_directory_entry(i, file_start, netmsg_parse_mode, aux.clone());
 
     map(
         count(local_parse_directory_entry, entry_count as usize),
@@ -148,10 +138,10 @@ pub fn parse_directory<'a>(
 pub fn parse_fallback_directory<'a>(
     frames_start: &'a [u8],
     file_start: &'a [u8],
-    should_parse_netmessage: bool,
+    netmsg_parse_mode: MessageDataParseMode,
     aux: AuxRefCell,
 ) -> Result<'a, Directory> {
-    let parser = |i| parse_frame(i, should_parse_netmessage, aux.clone());
+    let parser = |i| parse_frame(i, netmsg_parse_mode, aux.clone());
 
     let loading_entry_start = frames_start;
 
@@ -209,7 +199,7 @@ pub fn parse_fallback_directory<'a>(
 pub fn parse_directory_entry<'a>(
     i: &'a [u8],
     file_start: &'a [u8],
-    should_parse_netmessage: bool,
+    netmsg_parse_mode: MessageDataParseMode,
     aux: AuxRefCell,
 ) -> Result<'a, DirectoryEntry> {
     let (
@@ -232,8 +222,7 @@ pub fn parse_directory_entry<'a>(
     let mut frames_start = &file_start[frame_offset as usize..];
 
     loop {
-        let (end_current_frame, frame) =
-            parse_frame(frames_start, should_parse_netmessage, aux.clone())?;
+        let (end_current_frame, frame) = parse_frame(frames_start, netmsg_parse_mode, aux.clone())?;
 
         let is_next_section = matches!(frame.frame_data, FrameData::NextSection);
 
@@ -261,7 +250,11 @@ pub fn parse_directory_entry<'a>(
     ))
 }
 
-pub fn parse_frame(i: &[u8], should_parse_netmessage: bool, aux: AuxRefCell) -> Result<Frame> {
+pub fn parse_frame(
+    i: &[u8],
+    netmsg_parse_mode: MessageDataParseMode,
+    aux: AuxRefCell,
+) -> Result<Frame> {
     let (i, (type_, time, frame)) = tuple((le_u8, le_f32, le_i32))(i)?;
 
     let (i, frame_data) = match type_ {
@@ -274,7 +267,7 @@ pub fn parse_frame(i: &[u8], should_parse_netmessage: bool, aux: AuxRefCell) -> 
         8 => map(parse_sound, FrameData::Sound)(i)?,
         9 => map(parse_demo_buffer, FrameData::DemoBuffer)(i)?,
         rest => {
-            let (i, res) = parse_network_messages(i, should_parse_netmessage, aux)?;
+            let (i, res) = parse_network_messages(i, netmsg_parse_mode, aux)?;
             (
                 i,
                 FrameData::NetworkMessage(Box::new((
@@ -409,7 +402,7 @@ pub fn parse_demo_buffer(i: &[u8]) -> Result<DemoBuffer> {
 
 pub fn parse_network_messages(
     i: &[u8],
-    should_parse_netmessage: bool,
+    netmsg_parse_mode: MessageDataParseMode,
     aux: AuxRefCell,
 ) -> Result<NetworkMessage> {
     let (i, (info, sequence_info, message_length)) =
@@ -424,14 +417,16 @@ pub fn parse_network_messages(
     let the_rest = &i[message_length as usize..];
     // let (i, netmessage_data_chunk) = count(le_u8, message_length as usize)(i)?;
 
-    let messages = if should_parse_netmessage {
-        // only parse the chunk
-        // otherwise, it might spill outside, which it will
-        let (_, netmessages) = parse_netmsg(netmessage_data_chunk, aux)?;
+    let messages = match netmsg_parse_mode {
+        MessageDataParseMode::Parse => {
+            // only parse the chunk
+            // otherwise, it might spill outside, which it will
+            let (_, netmessages) = parse_netmsg(netmessage_data_chunk, aux)?;
 
-        MessageData::Parsed(netmessages)
-    } else {
-        MessageData::Raw(netmessage_data_chunk.to_vec())
+            MessageData::Parsed(netmessages)
+        }
+        MessageDataParseMode::Raw => MessageData::Raw(netmessage_data_chunk.to_vec()),
+        MessageDataParseMode::None => MessageData::None,
     };
 
     Ok((

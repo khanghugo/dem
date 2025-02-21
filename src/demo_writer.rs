@@ -235,6 +235,10 @@ impl Demo {
                                 writer.append_i32(vec.len() as i32);
                                 writer.append_u8_slice(vec.as_slice());
                             }
+                            MessageData::None => {
+                                // length
+                                writer.append_i32(0);
+                            }
                         }
                     }
                 }

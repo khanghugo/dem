@@ -72,11 +72,11 @@ pub fn write_netmsg(i: &Vec<NetMessage>, aux: AuxRefCell) -> ByteVec {
 /// let demo = open_demo("./tests/demotest.dem").unwrap();
 /// ```
 pub fn open_demo(demo_path: impl AsRef<Path> + AsRef<OsStr>) -> eyre::Result<Demo> {
-    Demo::parse_from_file(demo_path, true)
+    Demo::parse_from_file(demo_path, types::MessageDataParseMode::Parse)
 }
 
 pub fn open_demo_from_bytes(demo_bytes: &[u8]) -> eyre::Result<Demo> {
-    Demo::parse_from_bytes(demo_bytes, true)
+    Demo::parse_from_bytes(demo_bytes, types::MessageDataParseMode::Parse)
 }
 
 /// Writes a [`u32`] into [`types::BitVec`]
@@ -114,12 +114,23 @@ mod test {
 
     #[test]
     fn open_without_netmessage() {
-        Demo::parse_from_file("./src/tests/demotest.dem", false).unwrap();
+        Demo::parse_from_file(
+            "./src/tests/demotest.dem",
+            types::MessageDataParseMode::Parse,
+        )
+        .unwrap();
     }
 
     #[test]
     fn write() {
         let dem = open_demo("./src/tests/demotest.dem").unwrap();
         dem.write_to_file("./src/tests/demotest_out.dem").unwrap();
+    }
+
+    #[test]
+    fn runwh() {
+        let dem = open_demo("/tmp/demo/kzzNk_base_ahful-_0118.83.dem").unwrap();
+
+        println!("{:?}", dem.header);
     }
 }

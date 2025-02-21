@@ -14,7 +14,7 @@ impl Doer for SvcDirector {
             SvcDirector {
                 length,
                 flag,
-                message: message.to_vec(),
+                message: message.into(),
             },
         ))
     }
@@ -26,7 +26,7 @@ impl Doer for SvcDirector {
 
         writer.append_u8(self.length);
         writer.append_u8(self.flag);
-        writer.append_u8_slice(&self.message);
+        writer.append_u8_slice(self.message.as_slice());
 
         writer.data
     }

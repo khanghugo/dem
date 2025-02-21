@@ -306,6 +306,19 @@ pub struct SequenceInfo {
 pub enum MessageData {
     Parsed(Vec<NetMessage>),
     Raw(Vec<u8>),
+    None,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum MessageDataParseMode {
+    /// Parses network messages
+    Parse,
+    /// Store raw network message bytes
+    Raw,
+    /// Does not store any network message bytes
+    ///
+    /// Use this if you want less memory footprint and you have no use for network messages
+    None,
 }
 
 // Everything related to netmessage starts here
@@ -1797,7 +1810,7 @@ pub struct SvcHltv {
 pub struct SvcDirector {
     pub length: u8,
     pub flag: u8,
-    pub message: ByteVec,
+    pub message: ByteString,
 }
 
 /// SVC_VOINCEINIT 52
@@ -1837,14 +1850,14 @@ pub struct SvcResourceLocation {
 /// SVC_SENDCVARVALUE 57
 #[derive(Debug, Clone)]
 pub struct SvcSendCvarValue {
-    pub name: ByteVec,
+    pub name: ByteString,
 }
 
 /// SVC_SENDCVARVALUE2 58
 #[derive(Debug, Clone)]
 pub struct SvcSendCvarValue2 {
     pub request_id: u32,
-    pub name: ByteVec,
+    pub name: ByteString,
 }
 
 #[derive(Clone)]

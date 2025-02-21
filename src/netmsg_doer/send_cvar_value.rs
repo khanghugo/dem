@@ -6,9 +6,7 @@ impl Doer for SvcSendCvarValue {
     }
 
     fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
-        map(null_string, |name| SvcSendCvarValue {
-            name: name.to_vec(),
-        })(i)
+        map(null_string, |name| SvcSendCvarValue { name: name.into() })(i)
     }
 
     fn write(&self, _: AuxRefCell) -> ByteVec {
@@ -16,7 +14,7 @@ impl Doer for SvcSendCvarValue {
 
         writer.append_u8(self.id());
 
-        writer.append_u8_slice(&self.name);
+        writer.append_u8_slice(self.name.as_slice());
 
         writer.data
     }
