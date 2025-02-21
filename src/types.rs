@@ -1806,11 +1806,18 @@ pub struct SvcHltv {
 }
 
 /// SVC_DIRECTOR 51
+///
+/// To interpret message, check
+///
+/// https://github.com/ValveSoftware/halflife/blob/b1b5cf5892918535619b2937bb927e46cb097ba1/cl_dll/hud_spectator.cpp#L682
 #[derive(Debug, Clone)]
 pub struct SvcDirector {
     pub length: u8,
     pub command: u8,
-    pub message: ByteString,
+    /// To interpret message, check
+    ///
+    /// https://github.com/ValveSoftware/halflife/blob/b1b5cf5892918535619b2937bb927e46cb097ba1/cl_dll/hud_spectator.cpp#L682
+    pub message: ByteVec,
 }
 
 /// SVC_VOINCEINIT 52
