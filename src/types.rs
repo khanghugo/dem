@@ -1809,7 +1809,7 @@ pub struct SvcHltv {
 #[derive(Debug, Clone)]
 pub struct SvcDirector {
     pub length: u8,
-    pub flag: u8,
+    pub command: u8,
     pub message: ByteString,
 }
 

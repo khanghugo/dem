@@ -6,14 +6,15 @@ impl Doer for SvcDirector {
     }
 
     fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
-        let (i, (length, flag)) = tuple((le_u8, le_u8))(i)?;
+        // https://github.com/ValveSoftware/halflife/blob/b1b5cf5892918535619b2937bb927e46cb097ba1/common/hltv.h#L17-L35
+        let (i, (length, command)) = tuple((le_u8, le_u8))(i)?;
         let (i, message) = take(length - 1)(i)?;
 
         Ok((
             i,
             SvcDirector {
                 length,
-                flag,
+                command,
                 message: message.into(),
             },
         ))
@@ -25,7 +26,7 @@ impl Doer for SvcDirector {
         writer.append_u8(self.id());
 
         writer.append_u8(self.length);
-        writer.append_u8(self.flag);
+        writer.append_u8(self.command);
         writer.append_u8_slice(self.message.as_slice());
 
         writer.data
