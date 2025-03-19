@@ -1720,7 +1720,6 @@ pub struct Resource {
 }
 #[derive(Debug, Clone)]
 pub struct Consistency {
-    pub has_check_file_flag: bool,
     pub is_short_index: Option<bool>,
     /// `[bool; 5]`
     pub short_index: Option<BitVec>,

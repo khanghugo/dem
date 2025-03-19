@@ -47,31 +47,28 @@ impl Doer for SvcResourceList {
         let mut consistencies: Vec<Consistency> = vec![];
 
         if br.read_1_bit() {
-            loop {
-                let has_check_file_flag = br.read_1_bit();
+            while br.read_1_bit() {
+                let is_short_index = br.read_1_bit();
 
-                if has_check_file_flag {
-                    let is_short_index = br.read_1_bit();
-
-                    let (short_index, long_index) = if is_short_index {
-                        (Some(br.read_n_bit(5).to_owned()), None)
-                    } else {
-                        (None, Some(br.read_n_bit(10).to_owned()))
-                    };
-
-                    consistencies.push(Consistency {
-                        has_check_file_flag,
-                        is_short_index: Some(is_short_index),
-                        short_index,
-                        long_index,
-                    });
+                let (short_index, long_index) = if is_short_index {
+                    (Some(br.read_n_bit(5).to_owned()), None)
                 } else {
-                    break;
-                }
+                    (None, Some(br.read_n_bit(10).to_owned()))
+                };
+
+                consistencies.push(Consistency {
+                    is_short_index: Some(is_short_index),
+                    short_index,
+                    long_index,
+                });
             }
         }
 
         let (i, _) = take(br.get_consumed_bytes())(i)?;
+
+        resources
+            .iter()
+            .for_each(|resource| println!("{} {:?}", resource.name.get_string(), resource.name));
 
         Ok((
             i,
@@ -120,15 +117,14 @@ impl Doer for SvcResourceList {
         }
 
         for consistency in &self.consistencies {
-            bw.append_bit(consistency.has_check_file_flag);
+            // for eery consistency, add true bit first
+            bw.append_bit(true);
 
-            if consistency.has_check_file_flag {
-                bw.append_bit(consistency.is_short_index.unwrap());
-                if consistency.is_short_index.unwrap() {
-                    bw.append_vec(consistency.short_index.as_ref().unwrap());
-                } else {
-                    bw.append_vec(consistency.long_index.as_ref().unwrap());
-                }
+            bw.append_bit(consistency.is_short_index.unwrap());
+            if consistency.is_short_index.unwrap() {
+                bw.append_vec(consistency.short_index.as_ref().unwrap());
+            } else {
+                bw.append_vec(consistency.long_index.as_ref().unwrap());
             }
         }
 
