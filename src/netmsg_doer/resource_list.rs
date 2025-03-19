@@ -66,10 +66,6 @@ impl Doer for SvcResourceList {
 
         let (i, _) = take(br.get_consumed_bytes())(i)?;
 
-        resources
-            .iter()
-            .for_each(|resource| println!("{} {:?}", resource.name.get_string(), resource.name));
-
         Ok((
             i,
             Self {
