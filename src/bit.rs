@@ -1,3 +1,5 @@
+use std::str::from_utf8;
+
 use bitvec::{field::BitField, order::Lsb0, slice::BitSlice as _BitSlice};
 
 use self::types::BitVec;
@@ -199,6 +201,7 @@ pub trait BitSliceCast {
     fn to_i16(&self) -> i16;
     fn to_u32(&self) -> u32;
     fn to_i32(&self) -> i32;
+    fn get_string(&self) -> String;
 }
 
 impl BitSliceCast for BitSlice {
@@ -225,5 +228,15 @@ impl BitSliceCast for BitSlice {
 
     fn to_i32(&self) -> i32 {
         self.load::<i32>()
+    }
+
+    fn get_string(&self) -> String {
+        let binding = self
+            .chunks(8)
+            .map(|chunk| chunk.to_i8() as u8)
+            .collect::<Vec<u8>>();
+        let s = from_utf8(binding.as_slice()).unwrap();
+
+        s.to_string()
     }
 }
