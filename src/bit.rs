@@ -34,12 +34,31 @@ impl BitReader {
         res
     }
 
+    /*
+    char * MSG_ReadBitString(void)
+    {
+        uint32 uVar1;
+        char *pcVar2;
+
+        pcVar2 = MSG_ReadBitString::buf;
+        MSG_ReadBitString::buf[0] = '\0';
+        if (msg_badread == false) {
+        do {
+            uVar1 = MSG_ReadBits(8);
+            if ((char)uVar1 == '\0') break;
+            *pcVar2 = (char)uVar1;
+            pcVar2 = pcVar2 + 1;
+        } while (msg_badread == false);
+        }
+        *pcVar2 = '\0';
+        return MSG_ReadBitString::buf;
+    }
+    */
     pub fn read_string(&mut self) -> &BitSlice {
         let start = self.offset;
 
-        // The second condition is to make sure we are aligned.
-        while self.peek_byte() != 0 || (self.offset - start) % 8 != 0 {
-            self.offset += 1;
+        while self.peek_byte() != 0 {
+            self.offset += 8;
         }
 
         // Includes the null terminator.
