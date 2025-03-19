@@ -128,9 +128,29 @@ mod test {
     }
 
     #[test]
-    fn runwh() {
-        let dem = open_demo("/tmp/demo/kzzNk_base_ahful-_0118.83.dem").unwrap();
+    fn read_a_lot() {
+        let folder = "./src/tests/";
 
-        println!("{:?}", dem.header);
+        std::fs::read_dir(folder)
+            .map(|res| {
+                res.filter_map(|entry| entry.ok()).for_each(|entry| {
+                    let path = entry.path();
+
+                    if path.is_dir() {
+                        return;
+                    }
+
+                    if path.extension().map(|ext| ext != "dem").unwrap_or(false) {
+                        return;
+                    }
+
+                    assert!(
+                        open_demo(path.as_path()).is_ok(),
+                        "error opening {}",
+                        path.display()
+                    )
+                })
+            })
+            .unwrap_or_else(|_| assert!(false));
     }
 }
