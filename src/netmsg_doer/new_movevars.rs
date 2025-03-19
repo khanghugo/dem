@@ -11,7 +11,7 @@ impl Doer for SvcNewMovevars {
             tuple((
                 tuple((
                     le_f32, le_f32, le_f32, le_f32, le_f32, le_f32, le_f32, le_f32, le_f32, le_f32,
-                    le_f32, le_f32, le_f32, le_f32, le_f32, le_f32, le_i32, le_f32, le_f32,
+                    le_f32, le_f32, le_f32, le_f32, le_f32, le_f32, le_u8, le_f32, le_f32,
                 )),
                 count(le_f32, 3),
                 count(le_f32, 3),
@@ -91,7 +91,7 @@ impl Doer for SvcNewMovevars {
         writer.append_f32(self.max_velocity);
         writer.append_f32(self.z_max);
         writer.append_f32(self.wave_height);
-        writer.append_i32(self.footsteps);
+        writer.append_u8(self.footsteps);
         writer.append_f32(self.roll_angle);
         writer.append_f32(self.roll_speed);
         for e in &self.sky_color {

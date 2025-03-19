@@ -1746,7 +1746,7 @@ pub struct SvcNewMovevars {
     pub max_velocity: f32,
     pub z_max: f32,
     pub wave_height: f32,
-    pub footsteps: i32,
+    pub footsteps: u8,
     pub roll_angle: f32,
     pub roll_speed: f32,
     /// Vec3
