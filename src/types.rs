@@ -101,6 +101,26 @@ pub enum FrameData {
     DemoBuffer(DemoBuffer),
 }
 
+impl FrameData {
+    pub fn get_network_message(&self) -> Option<&Box<(NetworkMessageType, NetworkMessage)>> {
+        if let FrameData::NetworkMessage(x) = &self {
+            return x.into();
+        }
+
+        None
+    }
+
+    pub fn get_network_message_mut(
+        &mut self,
+    ) -> Option<&mut Box<(NetworkMessageType, NetworkMessage)>> {
+        if let FrameData::NetworkMessage(x) = self {
+            return Some(x);
+        }
+
+        None
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ConsoleCommand {
     /// `[u8; 64]`
@@ -309,6 +329,24 @@ pub enum MessageData {
     None,
 }
 
+impl MessageData {
+    pub fn get_parsed_messages(&self) -> Option<&Vec<NetMessage>> {
+        if let Self::Parsed(x) = self {
+            return x.into();
+        }
+
+        None
+    }
+
+    pub fn get_parsed_messages_mut(&mut self) -> Option<&mut Vec<NetMessage>> {
+        if let Self::Parsed(x) = self {
+            return Some(x);
+        }
+
+        None
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum MessageDataParseMode {
     /// Parses network messages
@@ -360,6 +398,24 @@ pub enum DeltaType {
 pub enum NetMessage {
     UserMessage(UserMessage),
     EngineMessage(Box<EngineMessage>),
+}
+
+impl NetMessage {
+    pub fn get_engine_message(&self) -> Option<&EngineMessage> {
+        if let Self::EngineMessage(x) = self {
+            return x.as_ref().into();
+        }
+
+        None
+    }
+
+    pub fn get_engine_message_mut(&mut self) -> Option<&mut EngineMessage> {
+        if let Self::EngineMessage(x) = self {
+            return Some(x.as_mut());
+        }
+
+        None
+    }
 }
 
 pub type CustomMessage = HashMap<u8, SvcNewUserMsg>;
