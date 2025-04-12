@@ -101,7 +101,7 @@ impl Demo {
                     }
                     FrameData::Sound(frame) => {
                         writer.append_i32(frame.channel);
-                        writer.append_i32(frame.sample.len() as i32);
+                        writer.append_i32(frame.sample.0.len() as i32);
                         writer.append_u8_slice(frame.sample.as_slice());
                         writer.append_f32(frame.attenuation);
                         writer.append_f32(frame.volume);

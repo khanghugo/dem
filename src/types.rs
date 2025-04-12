@@ -1,8 +1,8 @@
-use std::{cell::RefCell, collections::HashMap, ffi::CStr, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, ffi::CStr, rc::Rc, str::from_utf8};
 
 use bitvec::{order::Lsb0, slice::BitSlice as _BitSlice, vec::BitVec as _BitVec};
 
-use crate::utils::get_initial_delta;
+use crate::{bit::BitSliceCast, utils::get_initial_delta};
 
 /// Auxillary data required for parsing/writing certain messages.
 ///
@@ -167,7 +167,7 @@ pub struct EventArgs {
 pub struct Sound {
     pub channel: i32,
     /// `[u8; sample_length]`
-    pub sample: Vec<u8>,
+    pub sample: ByteString,
     pub attenuation: f32,
     pub volume: f32,
     pub flags: i32,
@@ -568,6 +568,30 @@ pub struct OriginCoord {
     // There is no unknow, Xd
     // `[bool; 2]`
     // pub unknown: BitVec,
+}
+
+impl OriginCoord {
+    pub fn to_number(&self) -> f32 {
+        let mut res = 0.0;
+
+        if let Some(fraction_value) = &self.fraction_value {
+            let fract = 2f32.powi(-fraction_value.to_i32());
+            res += fract;
+        }
+
+        if let Some(int_value) = &self.int_value {
+            let int = int_value.to_u32() as f32;
+            res += int;
+        }
+
+        if let Some(is_neg) = self.is_negative {
+            if is_neg {
+                res = -res;
+            }
+        }
+
+        return res;
+    }
 }
 
 /// SVC_TIME 7
@@ -1927,10 +1951,14 @@ pub struct ByteString(pub ByteVec);
 
 impl ByteString {
     pub fn to_str(&self) -> eyre::Result<&str> {
-        // wtf is this syntax?
-        CStr::from_bytes_until_nul(self.0.as_slice())
-            .map_err(|err| eyre::eyre!(err))
-            .and_then(|cstr| Ok(cstr.to_str()?))
+        match CStr::from_bytes_until_nul(self.0.as_slice()) {
+            Ok(res) => res.to_str().map_err(|op| eyre::eyre!(op)),
+            Err(_) => {
+                // if it is err, we can pase it again but without null terminator
+                // if it doesnt work, there will be another commment here
+                from_utf8(self.0.as_slice()).map_err(|op| eyre::eyre!(op))
+            }
+        }
     }
 
     pub fn as_slice(&self) -> &[u8] {

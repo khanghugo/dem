@@ -381,7 +381,7 @@ pub fn parse_sound(i: &[u8]) -> Result<Sound> {
         tuple((take(sample_length), le_f32, le_f32, le_i32, le_i32)),
         |(sample, attenuation, volume, flags, pitch): (&[u8], _, _, _, _)| Sound {
             channel,
-            sample: sample.to_vec(),
+            sample: sample.into(),
             attenuation,
             volume,
             flags,
