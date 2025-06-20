@@ -167,7 +167,7 @@ impl UserMessage {
                 name: if is_set {
                     custom_message.unwrap().name.clone().into()
                 } else {
-                    b"\0".to_vec()
+                    vec![0].into()
                 },
                 data: data.to_vec(),
             },

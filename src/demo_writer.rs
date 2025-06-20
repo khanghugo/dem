@@ -96,7 +96,7 @@ impl Demo {
                         writer.append_i32(frame.args.bparam2);
                     }
                     FrameData::WeaponAnimation(frame) => {
-                        writer.append_i32(frame.anim);
+                        writer.append_i32(frame.sequence);
                         writer.append_i32(frame.body);
                     }
                     FrameData::Sound(frame) => {

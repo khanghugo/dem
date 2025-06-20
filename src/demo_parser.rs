@@ -366,7 +366,7 @@ pub fn parse_event_args(i: &[u8]) -> Result<EventArgs> {
 
 pub fn parse_weapon_animation(i: &[u8]) -> Result<WeaponAnimation> {
     map(tuple((le_i32, le_i32)), |(anim, body)| WeaponAnimation {
-        anim,
+        sequence: anim,
         body,
     })(i)
 }

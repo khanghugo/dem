@@ -176,7 +176,7 @@ pub struct Sound {
 
 #[derive(Debug, Clone)]
 pub struct WeaponAnimation {
-    pub anim: i32,
+    pub sequence: i32,
     pub body: i32,
 }
 
@@ -423,7 +423,7 @@ pub type CustomMessage = HashMap<u8, SvcNewUserMsg>;
 pub struct UserMessage {
     pub id: u8,
     /// `[bool; 16]`
-    pub name: ByteVec,
+    pub name: ByteString,
     pub data: ByteVec,
 }
 
