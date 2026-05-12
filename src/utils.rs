@@ -81,9 +81,14 @@ mod test {
 
     #[test]
     fn bit_slice_to_string() {
-        let v = bitarr![u8, Lsb0; 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let v = bitarr![u8, Lsb0;
+        0, 1, 0, 1, 0, 1, 0, 0, // b1
+        1, 1, 0, 0, 1, 1, 0, 0, // b2
+        0, 0, 0, 1, 1, 1, 0, 0, // b3
+        // 0, 0, 0, 0, 0, 0, 0, 0 // b4
+        ];
         let res = bitslice_to_string(v.as_bitslice());
 
-        assert_eq!(res, "*38\0\0\0\0\0")
+        assert_eq!(res, "*38")
     }
 }

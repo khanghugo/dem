@@ -2,11 +2,12 @@ use std::{ffi::OsStr, fs::OpenOptions, io::Write, path::Path};
 
 use crate::{
     byte_writer::ByteWriter,
+    error::DemoError,
     types::{Demo, FrameData, MessageData, NetworkMessageType},
 };
 
 impl Demo {
-    pub fn write_to_file(&self, path: impl AsRef<OsStr> + AsRef<Path>) -> eyre::Result<()> {
+    pub fn write_to_file(&self, path: impl AsRef<OsStr> + AsRef<Path>) -> Result<(), DemoError> {
         let mut file = OpenOptions::new()
             .create(true)
             .write(true)

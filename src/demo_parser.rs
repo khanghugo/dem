@@ -1,8 +1,6 @@
-use std::{ffi::OsStr, fs::OpenOptions, io::Read, path::Path};
-
 use nom::{
     bytes::complete::take,
-    combinator::{map, verify},
+    combinator::{all_consuming, map, verify},
     multi::{count, many0, many_till},
     number::complete::{le_f32, le_i16, le_i32, le_i8, le_u16, le_u32, le_u8},
     sequence::tuple,
@@ -10,39 +8,13 @@ use nom::{
 
 use crate::{
     nom_helper::{nom_fail, take_point_float, Result},
-    parse_netmsg,
     types::{
         Aux, AuxRefCell, ClientData, ConsoleCommand, Demo, DemoBuffer, DemoInfo, Directory,
         DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData,
-        MessageDataParseMode, MoveVars, NetworkMessage, NetworkMessageType, RefParams,
+        MessageDataParseMode, MoveVars, NetMessage, NetworkMessage, NetworkMessageType, RefParams,
         SequenceInfo, Sound, UserCmd, WeaponAnimation,
     },
 };
-
-impl Demo {
-    /// It is faster to parse netmessage because it just is for some reasons
-    pub fn parse_from_file(
-        path: impl AsRef<OsStr> + AsRef<Path>,
-        netmsg_parse_mode: MessageDataParseMode,
-    ) -> eyre::Result<Self> {
-        let mut file = OpenOptions::new().read(true).open(path)?;
-        let mut bytes: Vec<u8> = vec![];
-
-        file.read_to_end(&mut bytes)?;
-
-        Self::parse_from_bytes(bytes.as_slice(), netmsg_parse_mode)
-    }
-
-    pub fn parse_from_bytes(
-        demo_bytes: &[u8],
-        netmsg_parse_mode: MessageDataParseMode,
-    ) -> eyre::Result<Self> {
-        match parse_demo(demo_bytes, netmsg_parse_mode) {
-            Ok((_, demo)) => Ok(demo),
-            Err(err) => Err(eyre::eyre!("cannot parse demo: {}", err)),
-        }
-    }
-}
 
 pub fn parse_demo(i: &[u8], netmsg_parse_mode: MessageDataParseMode) -> Result<Demo> {
     let aux2 = Aux::new2();
@@ -254,7 +226,7 @@ pub fn parse_frame(
     i: &[u8],
     netmsg_parse_mode: MessageDataParseMode,
     aux: AuxRefCell,
-) -> Result<Frame> {
+) -> Result<'_, Frame> {
     let (i, (type_, time, frame)) = tuple((le_u8, le_f32, le_i32))(i)?;
 
     let (i, frame_data) = match type_ {
@@ -398,6 +370,11 @@ pub fn parse_demo_buffer(i: &[u8]) -> Result<DemoBuffer> {
     map(take(buffer_length), |buffer: &[u8]| DemoBuffer {
         buffer: buffer.to_vec(),
     })(i)
+}
+
+pub fn parse_netmsg(i: &[u8], aux: AuxRefCell) -> Result<Vec<NetMessage>> {
+    let parser = move |i| NetMessage::parse(i, aux.clone());
+    all_consuming(many0(parser))(i)
 }
 
 pub fn parse_network_messages(

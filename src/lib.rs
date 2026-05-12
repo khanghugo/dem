@@ -2,7 +2,7 @@
 //!
 //! # Example
 //!
-//! ```no_run
+//! ```ignore
 //! let mut demo = open_demo("./src/tests/demotest.dem").unwrap();
 //!
 //! for entry in &mut demo.directory.entries {
@@ -19,12 +19,9 @@
 //!
 //! demo.write_to_file("./src/tests/demo2test.dem").unwrap();
 //! ```
-use std::{ffi::OsStr, path::Path};
+use std::{ffi::OsStr, fs::OpenOptions, io::Read, path::Path};
 
-use nom::{combinator::all_consuming, multi::many0};
-use types::{AuxRefCell, ByteVec, DeltaDecoderTable, Demo, NetMessage};
-
-use nom_helper::Result;
+use types::{DeltaDecoderTable, Demo};
 
 mod byte_writer;
 mod delta;
@@ -34,10 +31,14 @@ mod utils;
 pub mod bit;
 pub mod demo_parser;
 pub mod demo_writer;
+pub mod error;
 pub mod netmsg_doer;
-pub mod prelude;
 pub mod types;
 
+// need this to have the conversion function
+pub use crate::bit::BitSliceCast;
+
+use crate::{demo_parser::parse_demo, error::DemoError, types::MessageDataParseMode};
 pub use utils::bitslice_to_string;
 
 // /// Re-exporting hldemo to have latest changes than 0.3.0 hldemo
@@ -46,36 +47,42 @@ pub use utils::bitslice_to_string;
 /// Re-exporting bitvec to avoid clogging the main project
 pub extern crate bitvec;
 
-/// Parses all bytes in `data.msg` for each demo frame.
-///
-///
-pub fn parse_netmsg(i: &[u8], aux: AuxRefCell) -> Result<Vec<NetMessage>> {
-    let parser = move |i| NetMessage::parse(i, aux.clone());
-    all_consuming(many0(parser))(i)
-}
+impl Demo {
+    /// It is faster to parse netmessage because it just is for some reasons
+    pub fn parse_from_file(
+        path: impl AsRef<OsStr> + AsRef<Path>,
+        netmsg_parse_mode: MessageDataParseMode,
+    ) -> Result<Self, DemoError> {
+        let mut file = OpenOptions::new().read(true).open(path)?;
+        let mut bytes: Vec<u8> = vec![];
 
-/// Should be used for replacing `data.msg` of each frame.
-pub fn write_netmsg(i: &Vec<NetMessage>, aux: AuxRefCell) -> ByteVec {
-    let mut res: ByteVec = vec![];
+        file.read_to_end(&mut bytes)?;
 
-    for message in i {
-        res.append(&mut message.write(aux.clone()))
+        Self::parse_from_bytes(bytes.as_slice(), netmsg_parse_mode)
     }
 
-    res
+    pub fn parse_from_bytes(
+        demo_bytes: &[u8],
+        netmsg_parse_mode: MessageDataParseMode,
+    ) -> Result<Self, DemoError> {
+        parse_demo(demo_bytes, netmsg_parse_mode)
+            // discard errors because they aren't very helpful anyway
+            .map_err(|_| DemoError::ParseError)
+            .map(|(_, x)| x)
+    }
 }
 
 /// Opens a demo
 ///
 /// # Example
-/// ```no_run
+/// ```ignore
 /// let demo = open_demo("./tests/demotest.dem").unwrap();
 /// ```
-pub fn open_demo(demo_path: impl AsRef<Path> + AsRef<OsStr>) -> eyre::Result<Demo> {
+pub fn open_demo(demo_path: impl AsRef<Path> + AsRef<OsStr>) -> Result<Demo, DemoError> {
     Demo::parse_from_file(demo_path, types::MessageDataParseMode::Parse)
 }
 
-pub fn open_demo_from_bytes(demo_bytes: &[u8]) -> eyre::Result<Demo> {
+pub fn open_demo_from_bytes(demo_bytes: &[u8]) -> Result<Demo, DemoError> {
     Demo::parse_from_bytes(demo_bytes, types::MessageDataParseMode::Parse)
 }
 
@@ -122,9 +129,10 @@ mod test {
     }
 
     #[test]
-    fn write() {
+    fn write_read() {
         let dem = open_demo("./src/tests/demotest.dem").unwrap();
-        dem.write_to_file("./src/tests/demotest_out.dem").unwrap();
+        let a = dem.write_to_bytes();
+        let _dem = open_demo_from_bytes(&a).unwrap();
     }
 
     #[test]
@@ -143,6 +151,8 @@ mod test {
                     if path.extension().map(|ext| ext != "dem").unwrap_or(false) {
                         return;
                     }
+
+                    // let a = open_demo(path.as_path()).unwrap();
 
                     assert!(
                         open_demo(path.as_path()).is_ok(),

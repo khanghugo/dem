@@ -1,4 +1,10 @@
-use std::{cell::RefCell, collections::HashMap, ffi::CStr, rc::Rc, str::from_utf8};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    ffi::CStr,
+    rc::Rc,
+    str::{self, from_utf8},
+};
 
 use bitvec::{order::Lsb0, slice::BitSlice as _BitSlice, vec::BitVec as _BitVec};
 
@@ -1950,13 +1956,13 @@ pub struct SvcSendCvarValue2 {
 pub struct ByteString(pub ByteVec);
 
 impl ByteString {
-    pub fn to_str(&self) -> eyre::Result<&str> {
+    pub fn to_str(&self) -> Result<&str, str::Utf8Error> {
         match CStr::from_bytes_until_nul(self.0.as_slice()) {
-            Ok(res) => res.to_str().map_err(|op| eyre::eyre!(op)),
+            Ok(res) => res.to_str(),
             Err(_) => {
                 // if it is err, we can pase it again but without null terminator
                 // if it doesnt work, there will be another commment here
-                from_utf8(self.0.as_slice()).map_err(|op| eyre::eyre!(op))
+                from_utf8(self.0.as_slice())
             }
         }
     }
