@@ -5,11 +5,11 @@ impl Doer for SvcVersion {
         4
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(le_u32, |protocol_version| SvcVersion { protocol_version })(i)
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

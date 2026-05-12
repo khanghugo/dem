@@ -7,9 +7,7 @@ impl Doer for SvcSpawnBaseline {
         22
     }
 
-    fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self> {
-        let aux = aux.borrow();
-
+    fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
         let mut entities: Vec<EntityS> = vec![];
 
@@ -69,9 +67,7 @@ impl Doer for SvcSpawnBaseline {
         ))
     }
 
-    fn write(&self, aux: AuxRefCell) -> ByteVec {
-        let aux = aux.borrow();
-
+    fn write(&self, aux: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

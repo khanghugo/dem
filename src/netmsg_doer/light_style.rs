@@ -5,7 +5,7 @@ impl Doer for SvcLightStyle {
         12
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(tuple((le_u8, null_string)), |(index, light_info)| {
             SvcLightStyle {
                 index,
@@ -14,7 +14,7 @@ impl Doer for SvcLightStyle {
         })(i)
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

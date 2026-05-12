@@ -5,7 +5,7 @@ impl Doer for SvcServerInfo {
         11
     }
 
-    fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
             tuple((
                 le_i32,
@@ -35,8 +35,6 @@ impl Doer for SvcServerInfo {
                 map_cycle,
                 unknown,
             )| {
-                let mut aux = aux.borrow_mut();
-
                 // mutate max_client
                 aux.max_client = max_players;
 
@@ -58,7 +56,7 @@ impl Doer for SvcServerInfo {
         )(i)
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

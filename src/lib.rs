@@ -130,7 +130,7 @@ mod test {
 
     #[test]
     fn write_read() {
-        let dem = open_demo("./src/tests/demotest.dem").unwrap();
+        let mut dem = open_demo("./src/tests/demotest.dem").unwrap();
         let a = dem.write_to_bytes();
         let _dem = open_demo_from_bytes(&a).unwrap();
     }

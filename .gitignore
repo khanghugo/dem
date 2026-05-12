@@ -1,3 +1,7 @@
 /target
 out
 *out.dem
+
+src/tests
+!src/tests/weapon.dem
+!src/tests/demotest.dem

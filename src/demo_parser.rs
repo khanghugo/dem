@@ -1,23 +1,23 @@
 use nom::{
     bytes::complete::take,
-    combinator::{all_consuming, map, verify},
-    multi::{count, many0, many_till},
+    combinator::{all_consuming, map},
+    multi::{count, many0},
     number::complete::{le_f32, le_i16, le_i32, le_i8, le_u16, le_u32, le_u8},
     sequence::tuple,
 };
 
 use crate::{
-    nom_helper::{nom_fail, take_point_float, Result},
+    nom_helper::{nom_fail, take_point_float, NomResult},
     types::{
-        Aux, AuxRefCell, ClientData, ConsoleCommand, Demo, DemoBuffer, DemoInfo, Directory,
-        DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData,
+        ClientData, ConsoleCommand, Demo, DemoBuffer, DemoGlobalState, DemoInfo, DemoState,
+        Directory, DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData,
         MessageDataParseMode, MoveVars, NetMessage, NetworkMessage, NetworkMessageType, RefParams,
         SequenceInfo, Sound, UserCmd, WeaponAnimation,
     },
 };
 
-pub fn parse_demo(i: &[u8], netmsg_parse_mode: MessageDataParseMode) -> Result<Demo> {
-    let aux2 = Aux::new2();
+pub fn parse_demo(i: &[u8], netmsg_parse_mode: MessageDataParseMode) -> NomResult<'_, Demo> {
+    let mut demo_state = DemoState::new_raw();
 
     let file_start = i;
 
@@ -26,11 +26,16 @@ pub fn parse_demo(i: &[u8], netmsg_parse_mode: MessageDataParseMode) -> Result<D
     let (i, directory) = if header.directory_offset == 0 {
         let frames_start = i;
 
-        parse_fallback_directory(frames_start, file_start, netmsg_parse_mode, aux2.clone())
+        parse_fallback_directory(frames_start, file_start, netmsg_parse_mode, &mut demo_state)
     } else {
         let directory_start = &file_start[header.directory_offset as usize..];
 
-        parse_directory(directory_start, file_start, netmsg_parse_mode, aux2.clone())
+        parse_directory(
+            directory_start,
+            file_start,
+            netmsg_parse_mode,
+            &mut demo_state,
+        )
     }?;
 
     Ok((
@@ -38,12 +43,12 @@ pub fn parse_demo(i: &[u8], netmsg_parse_mode: MessageDataParseMode) -> Result<D
         Demo {
             header,
             directory,
-            _aux: Some(aux2),
+            _state: Some(demo_state),
         },
     ))
 }
 
-pub fn parse_header(i: &[u8]) -> Result<Header> {
+pub fn parse_header(i: &[u8]) -> NomResult<'_, Header> {
     let (i, magic) = take(8usize)(i)?;
 
     if magic != "HLDEMO\x00\x00".as_bytes() {
@@ -82,12 +87,12 @@ pub fn parse_directory<'a>(
     i: &'a [u8],
     file_start: &'a [u8],
     netmsg_parse_mode: MessageDataParseMode,
-    aux: AuxRefCell,
-) -> Result<'a, Directory> {
+    aux: &mut DemoGlobalState,
+) -> NomResult<'a, Directory> {
     let (i, entry_count) = le_u32(i)?;
 
     let local_parse_directory_entry =
-        |i| parse_directory_entry(i, file_start, netmsg_parse_mode, aux.clone());
+        |i| parse_directory_entry(i, file_start, netmsg_parse_mode, aux);
 
     map(
         count(local_parse_directory_entry, entry_count as usize),
@@ -111,20 +116,24 @@ pub fn parse_fallback_directory<'a>(
     frames_start: &'a [u8],
     file_start: &'a [u8],
     netmsg_parse_mode: MessageDataParseMode,
-    aux: AuxRefCell,
-) -> Result<'a, Directory> {
-    let parser = |i| parse_frame(i, netmsg_parse_mode, aux.clone());
-
+    aux: &mut DemoGlobalState,
+) -> NomResult<'a, Directory> {
     let loading_entry_start = frames_start;
+    let mut i = frames_start;
 
-    let (i, (mut loading_frames, next_section_frame)) = many_till(
-        parser,
-        verify(parser, |frame| {
-            matches!(frame.frame_data, FrameData::NextSection)
-        }),
-    )(frames_start)?;
+    // // unroll it like this so rust can be happy
+    let mut loading_frames = Vec::new();
+    loop {
+        let (next_input, frame) = parse_frame(i, netmsg_parse_mode, aux)?;
+        let is_next_section = matches!(frame.frame_data, FrameData::NextSection);
 
-    loading_frames.push(next_section_frame);
+        loading_frames.push(frame);
+        i = next_input;
+
+        if is_next_section {
+            break;
+        }
+    }
 
     let loading_entry_end = i;
 
@@ -143,7 +152,11 @@ pub fn parse_fallback_directory<'a>(
     };
 
     let playback_entry_start = i;
-    let (i, playback_frames) = many0(parser)(i)?;
+    let (i, playback_frames) = {
+        let parser = |i| parse_frame(i, netmsg_parse_mode, aux);
+        many0(parser)(i)?
+    };
+
     let playback_entry_end = i;
 
     let playback_entry = DirectoryEntry {
@@ -172,8 +185,8 @@ pub fn parse_directory_entry<'a>(
     i: &'a [u8],
     file_start: &'a [u8],
     netmsg_parse_mode: MessageDataParseMode,
-    aux: AuxRefCell,
-) -> Result<'a, DirectoryEntry> {
+    aux: &mut DemoGlobalState,
+) -> NomResult<'a, DirectoryEntry> {
     let (
         end_of_current_directory_entry,
         (type_, description, flags, cd_track, track_time, frame_count, frame_offset, file_length),
@@ -194,7 +207,7 @@ pub fn parse_directory_entry<'a>(
     let mut frames_start = &file_start[frame_offset as usize..];
 
     loop {
-        let (end_current_frame, frame) = parse_frame(frames_start, netmsg_parse_mode, aux.clone())?;
+        let (end_current_frame, frame) = parse_frame(frames_start, netmsg_parse_mode, aux)?;
 
         let is_next_section = matches!(frame.frame_data, FrameData::NextSection);
 
@@ -222,11 +235,11 @@ pub fn parse_directory_entry<'a>(
     ))
 }
 
-pub fn parse_frame(
-    i: &[u8],
+pub fn parse_frame<'a>(
+    i: &'a [u8],
     netmsg_parse_mode: MessageDataParseMode,
-    aux: AuxRefCell,
-) -> Result<'_, Frame> {
+    aux: &mut DemoGlobalState,
+) -> NomResult<'a, Frame> {
     let (i, (type_, time, frame)) = tuple((le_u8, le_f32, le_i32))(i)?;
 
     let (i, frame_data) = match type_ {
@@ -260,13 +273,13 @@ pub fn parse_frame(
     ))
 }
 
-pub fn parse_console_command(i: &[u8]) -> Result<ConsoleCommand> {
+pub fn parse_console_command(i: &[u8]) -> NomResult<'_, ConsoleCommand> {
     map(take(64usize), |command: &[u8]| ConsoleCommand {
         command: command.into(),
     })(i)
 }
 
-pub fn parse_client_data(i: &[u8]) -> Result<ClientData> {
+pub fn parse_client_data(i: &[u8]) -> NomResult<'_, ClientData> {
     map(
         tuple((take_point_float, take_point_float, le_i32, le_f32)),
         |(origin, viewangles, weapon_bits, fov)| ClientData {
@@ -278,7 +291,7 @@ pub fn parse_client_data(i: &[u8]) -> Result<ClientData> {
     )(i)
 }
 
-pub fn parse_event(i: &[u8]) -> Result<Event> {
+pub fn parse_event(i: &[u8]) -> NomResult<'_, Event> {
     map(
         tuple((le_i32, le_i32, le_f32, parse_event_args)),
         |(flags, index, delay, args)| Event {
@@ -290,7 +303,7 @@ pub fn parse_event(i: &[u8]) -> Result<Event> {
     )(i)
 }
 
-pub fn parse_event_args(i: &[u8]) -> Result<EventArgs> {
+pub fn parse_event_args(i: &[u8]) -> NomResult<'_, EventArgs> {
     map(
         tuple((
             le_i32,
@@ -336,14 +349,14 @@ pub fn parse_event_args(i: &[u8]) -> Result<EventArgs> {
     )(i)
 }
 
-pub fn parse_weapon_animation(i: &[u8]) -> Result<WeaponAnimation> {
+pub fn parse_weapon_animation(i: &[u8]) -> NomResult<'_, WeaponAnimation> {
     map(tuple((le_i32, le_i32)), |(anim, body)| WeaponAnimation {
         sequence: anim,
         body,
     })(i)
 }
 
-pub fn parse_sound(i: &[u8]) -> Result<Sound> {
+pub fn parse_sound(i: &[u8]) -> NomResult<'_, Sound> {
     let (i, (channel, sample_length)) = tuple((le_i32, le_u32))(i)?;
 
     // cannot return res directly because it is a closure and `channel` is outside of it
@@ -364,7 +377,7 @@ pub fn parse_sound(i: &[u8]) -> Result<Sound> {
     res
 }
 
-pub fn parse_demo_buffer(i: &[u8]) -> Result<DemoBuffer> {
+pub fn parse_demo_buffer(i: &[u8]) -> NomResult<'_, DemoBuffer> {
     let (i, buffer_length) = le_u32(i)?;
 
     map(take(buffer_length), |buffer: &[u8]| DemoBuffer {
@@ -372,16 +385,16 @@ pub fn parse_demo_buffer(i: &[u8]) -> Result<DemoBuffer> {
     })(i)
 }
 
-pub fn parse_netmsg(i: &[u8], aux: AuxRefCell) -> Result<Vec<NetMessage>> {
-    let parser = move |i| NetMessage::parse(i, aux.clone());
+pub fn parse_netmsg<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Vec<NetMessage>> {
+    let parser = move |i| NetMessage::parse(i, aux);
     all_consuming(many0(parser))(i)
 }
 
-pub fn parse_network_messages(
-    i: &[u8],
+pub fn parse_network_messages<'a>(
+    i: &'a [u8],
     netmsg_parse_mode: MessageDataParseMode,
-    aux: AuxRefCell,
-) -> Result<NetworkMessage> {
+    aux: &mut DemoGlobalState,
+) -> NomResult<'a, NetworkMessage> {
     let (i, (info, sequence_info, message_length)) =
         tuple((parse_network_messages_info, parse_sequence_info, le_u32))(i)?;
 
@@ -417,7 +430,7 @@ pub fn parse_network_messages(
     ))
 }
 
-pub fn parse_network_messages_info(i: &[u8]) -> Result<DemoInfo> {
+pub fn parse_network_messages_info(i: &[u8]) -> NomResult<'_, DemoInfo> {
     map(
         tuple((
             le_f32,
@@ -438,7 +451,7 @@ pub fn parse_network_messages_info(i: &[u8]) -> Result<DemoInfo> {
     )(i)
 }
 
-pub fn parse_refparams(i: &[u8]) -> Result<RefParams> {
+pub fn parse_refparams(i: &[u8]) -> NomResult<'_, RefParams> {
     map(
         tuple((
             tuple((
@@ -545,7 +558,7 @@ pub fn parse_refparams(i: &[u8]) -> Result<RefParams> {
     )(i)
 }
 
-pub fn parse_usercmd(i: &[u8]) -> Result<UserCmd> {
+pub fn parse_usercmd(i: &[u8]) -> NomResult<'_, UserCmd> {
     map(
         tuple((
             le_i16,
@@ -603,7 +616,7 @@ pub fn parse_usercmd(i: &[u8]) -> Result<UserCmd> {
     )(i)
 }
 
-pub fn parse_movevars(i: &[u8]) -> Result<MoveVars> {
+pub fn parse_movevars(i: &[u8]) -> NomResult<'_, MoveVars> {
     map(
         tuple((
             le_f32,
@@ -666,7 +679,7 @@ pub fn parse_movevars(i: &[u8]) -> Result<MoveVars> {
     )(i)
 }
 
-pub fn parse_sequence_info(i: &[u8]) -> Result<SequenceInfo> {
+pub fn parse_sequence_info(i: &[u8]) -> NomResult<'_, SequenceInfo> {
     map(
         tuple((le_i32, le_i32, le_i32, le_i32, le_i32, le_i32, le_i32)),
         |(

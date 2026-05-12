@@ -5,7 +5,7 @@ impl Doer for SvcNewUserMsg {
         39
     }
 
-    fn parse(i: &[u8], aux: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
             tuple((le_u8, le_i8, take(16usize))),
             |(index, size, name): (_, _, &[u8])| {
@@ -14,8 +14,6 @@ impl Doer for SvcNewUserMsg {
                     size,
                     name: name.into(),
                 };
-
-                let mut aux = aux.borrow_mut();
 
                 // mutate custom_messages
                 aux.custom_messages.remove(&index);
@@ -26,7 +24,7 @@ impl Doer for SvcNewUserMsg {
         )(i)
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

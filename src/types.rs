@@ -1,8 +1,6 @@
 use std::{
-    cell::RefCell,
     collections::HashMap,
     ffi::CStr,
-    rc::Rc,
     str::{self, from_utf8},
 };
 
@@ -16,7 +14,7 @@ use crate::{bit::BitSliceCast, utils::get_initial_delta};
 ///
 /// Basically storing some global values for demo to parse
 #[derive(Clone, Debug)]
-pub struct Aux {
+pub struct DemoState {
     pub delta_decoders: DeltaDecoderTable,
     pub max_client: u8,
     pub custom_messages: CustomMessage,
@@ -28,7 +26,7 @@ pub struct Aux {
     pub is_hltv: bool,
 }
 
-impl Aux {
+impl DemoState {
     pub fn new_raw() -> Self {
         Self {
             delta_decoders: get_initial_delta(),
@@ -38,12 +36,12 @@ impl Aux {
         }
     }
 
-    pub fn new2() -> AuxRefCell {
-        Rc::new(RefCell::new(Self::new_raw()))
-    }
+    // pub fn new2() -> DemoGlobalState {
+    //     Rc::new(RefCell::new(Self::new_raw()))
+    // }
 }
 
-pub type AuxRefCell = Rc<RefCell<Aux>>;
+pub type DemoGlobalState = DemoState;
 
 // Everything not related to netmessage starts here
 #[derive(Debug, Clone)]
@@ -51,7 +49,7 @@ pub struct Demo {
     pub header: Header,
     pub directory: Directory,
     /// Not part of a demo. Do not use this
-    pub _aux: Option<AuxRefCell>,
+    pub(crate) _state: Option<DemoGlobalState>,
 }
 
 #[derive(Debug, Clone)]

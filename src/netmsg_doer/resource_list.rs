@@ -7,7 +7,7 @@ impl Doer for SvcResourceList {
         43
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
 
         let resource_count = br.read_n_bit(12).to_owned();
@@ -76,7 +76,7 @@ impl Doer for SvcResourceList {
         ))
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

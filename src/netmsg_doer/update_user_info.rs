@@ -5,7 +5,7 @@ impl Doer for SvcUpdateUserInfo {
         13
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
             tuple((le_u8, le_u32, null_string, take(16usize))),
             |(index, id, user_info, cd_key_hash)| SvcUpdateUserInfo {
@@ -17,7 +17,7 @@ impl Doer for SvcUpdateUserInfo {
         )(i)
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

@@ -5,7 +5,7 @@ impl Doer for SvcResourceRequest {
         45
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
             tuple((le_i32, count(le_u8, 4usize))),
             |(spawn_count, unknown)| SvcResourceRequest {
@@ -15,7 +15,7 @@ impl Doer for SvcResourceRequest {
         )(i)
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

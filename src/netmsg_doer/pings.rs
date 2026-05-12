@@ -7,7 +7,7 @@ impl Doer for SvcPings {
         17
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
         let mut pings: Vec<PingS> = vec![];
 
@@ -36,7 +36,7 @@ impl Doer for SvcPings {
         Ok((i, SvcPings { pings }))
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

@@ -5,7 +5,7 @@ impl Doer for SvcDirector {
         51
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         // https://github.com/ValveSoftware/halflife/blob/b1b5cf5892918535619b2937bb927e46cb097ba1/common/hltv.h#L17-L35
         let (i, (length, command)) = tuple((le_u8, le_u8))(i)?;
         let (i, message) = take(length - 1)(i)?;
@@ -20,7 +20,7 @@ impl Doer for SvcDirector {
         ))
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());

@@ -5,7 +5,7 @@ impl Doer for SvcSpawnStatic {
         20
     }
 
-    fn parse(i: &[u8], _: AuxRefCell) -> Result<Self> {
+    fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let (
             i,
             (
@@ -52,7 +52,7 @@ impl Doer for SvcSpawnStatic {
         ))
     }
 
-    fn write(&self, _: AuxRefCell) -> ByteVec {
+    fn write(&self, _: &DemoGlobalState) -> ByteVec {
         let mut writer = ByteWriter::new();
 
         writer.append_u8(self.id());
