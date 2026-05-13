@@ -31,19 +31,11 @@ impl Doer for SvcDeltaDescription {
 
         let decoder: DeltaDecoder = data
             .iter()
-            .map(|entry| {
-                DeltaDecoderS {
-                    name: entry.get("name").unwrap().to_owned(),
-                    bits: u32::from_le_bytes(
-                        entry.get("bits").unwrap().as_slice().try_into().unwrap(),
-                    ), // heh
-                    divisor: f32::from_le_bytes(
-                        entry.get("divisor").unwrap().as_slice().try_into().unwrap(),
-                    ),
-                    flags: u32::from_le_bytes(
-                        entry.get("flags").unwrap().as_slice().try_into().unwrap(),
-                    ),
-                }
+            .map(|entry| DeltaDecoderS {
+                name: entry.get("name").unwrap().get_str().to_owned(),
+                bits: entry.get("bits").unwrap().get_u32(),
+                divisor: entry.get("divisor").unwrap().get_f32(),
+                flags: entry.get("flags").unwrap().get_u32(),
             })
             .collect();
 

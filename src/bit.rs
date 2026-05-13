@@ -161,6 +161,10 @@ impl BitWriter {
         self.append_u32_nbit(i as u32, 6);
     }
 
+    pub fn append_u7(&mut self, i: u8) {
+        self.append_u32_nbit(i as u32, 7);
+    }
+
     pub fn append_u8(&mut self, i: u8) {
         self.append_u32_nbit(i as u32, 8);
     }
@@ -181,12 +185,20 @@ impl BitWriter {
         self.append_u32_nbit(i as u32, 12);
     }
 
+    pub fn append_u15(&mut self, i: u16) {
+        self.append_u32_nbit(i as u32, 15);
+    }
+
     pub fn append_u16(&mut self, i: u16) {
         self.append_u32_nbit(i as u32, 16);
     }
 
     pub fn append_u24(&mut self, i: u32) {
         self.append_u32_nbit(i, 24);
+    }
+
+    pub fn append_u31(&mut self, i: u32) {
+        self.append_u32_nbit(i, 31);
     }
 
     pub fn append_u32(&mut self, i: u32) {

@@ -1,8 +1,6 @@
-use std::str::from_utf8;
-
 use crate::{
-    bit::{BitReader, BitSlice, BitSliceCast, BitWriter},
-    types::{Delta, DeltaDecoder, DeltaDecoderS, DeltaType},
+    bit::{BitReader, BitSliceCast, BitWriter},
+    types::{Delta, DeltaDecoder, DeltaDecoderS, DeltaType, DeltaValue},
 };
 
 pub fn parse_delta(dd: &DeltaDecoder, br: &mut BitReader) -> Delta {
@@ -24,9 +22,8 @@ pub fn parse_delta(dd: &DeltaDecoder, br: &mut BitReader) -> Delta {
 
             if (mask_byte & (1 << j)) != 0 {
                 let description = &dd[index];
-                let key = from_utf8(&description.name).unwrap().to_owned();
                 let value = parse_delta_field(description, br);
-                res.insert(key, value);
+                res.insert(description.name.to_owned(), value);
             }
         }
     }
@@ -40,7 +37,7 @@ macro_rules! flag {
     }};
 }
 
-fn parse_delta_field(description: &DeltaDecoderS, br: &mut BitReader) -> Vec<u8> {
+fn parse_delta_field(description: &DeltaDecoderS, br: &mut BitReader) -> DeltaValue {
     let lhs = description.flags;
 
     let is_signed = flag!(lhs, DeltaType::Signed);
@@ -57,60 +54,63 @@ fn parse_delta_field(description: &DeltaDecoderS, br: &mut BitReader) -> Vec<u8>
         if is_signed {
             let sign = if br.read_1_bit() { -1 } else { 1 };
             let value = br.read_n_bit(description.bits as usize - 1).to_u8();
-            let res_value = ((sign * value as i8) / description.divisor as i8).to_le_bytes();
-            res_value.to_vec()
+            let res_value = (sign * value as i8) / description.divisor as i8;
+
+            DeltaValue::ByteSigned(res_value)
         } else {
             let value = (br.read_n_bit(description.bits as usize)).to_u8();
-            let res_value = (value / description.divisor as u8).to_le_bytes();
-            res_value.to_vec()
+            let res_value = value / description.divisor as u8;
+
+            DeltaValue::ByteUnsigned(res_value)
         }
     } else if is_short {
         if is_signed {
             let sign = if br.read_1_bit() { -1 } else { 1 };
             let value = (br.read_n_bit(description.bits as usize - 1)).to_u16();
-            let res_value = ((sign * value as i16) / description.divisor as i16).to_le_bytes();
-            res_value.to_vec()
+            let res_value = (sign * value as i16) / description.divisor as i16;
+
+            DeltaValue::ShortSigned(res_value)
         } else {
             let value = (br.read_n_bit(description.bits as usize)).to_u16();
-            let res_value = (value / description.divisor as u16).to_le_bytes();
-            res_value.to_vec()
+            let res_value = value / description.divisor as u16;
+
+            DeltaValue::ShortUnsigned(res_value)
         }
     } else if is_integer {
         if is_signed {
             let sign = if br.read_1_bit() { -1 } else { 1 };
             let value = (br.read_n_bit(description.bits as usize - 1)).to_u32();
-            let res_value = ((sign * value as i32) / description.divisor as i32).to_le_bytes();
-            res_value.to_vec()
+            let res_value = (sign * value as i32) / description.divisor as i32;
+
+            DeltaValue::IntSigned(res_value)
         } else {
             let value = (br.read_n_bit(description.bits as usize)).to_u32();
-            let res_value = (value / description.divisor as u32).to_le_bytes();
-            res_value.to_vec()
+            let res_value = value / description.divisor as u32;
+
+            DeltaValue::IntUnsigned(res_value)
         }
     } else if is_some_float {
         if is_signed {
             let sign = if br.read_1_bit() { -1 } else { 1 };
             let value = (br.read_n_bit(description.bits as usize - 1)).to_u32();
-            let res_value = (((sign * value as i32) as f32) / (description.divisor)).to_le_bytes();
-            res_value.to_vec()
+
+            DeltaValue::FloatSigned((sign * value as i32) as f32 / description.divisor)
         } else {
             let value = (br.read_n_bit(description.bits as usize)).to_u32();
-            let res_value = ((value as f32) / (description.divisor)).to_le_bytes();
-            res_value.to_vec()
+
+            DeltaValue::FloatUnsigned(value as f32 / description.divisor)
         }
     } else if is_angle {
         let value = (br.read_n_bit(description.bits as usize)).to_u32();
         let multiplier = 360f32 / ((1 << description.bits) as f32);
-        let res_value = (value as f32 * multiplier).to_le_bytes();
-        res_value.to_vec()
+        let res_value = value as f32 * multiplier;
+
+        DeltaValue::Angle(res_value)
     } else if is_string {
-        bitslice_to_u8_vec(br.read_string())
+        DeltaValue::String(br.read_string().get_string())
     } else {
         unreachable!("Encoded value does not match any types. Should this happens?");
     }
-}
-
-fn bitslice_to_u8_vec(i: &BitSlice) -> Vec<u8> {
-    i.chunks(8).map(|chunk| chunk.to_u8()).collect()
 }
 
 pub fn write_delta(delta: &Delta, delta_decoder: &DeltaDecoder, bw: &mut BitWriter) {
@@ -123,7 +123,12 @@ pub fn write_delta(delta: &Delta, delta_decoder: &DeltaDecoder, bw: &mut BitWrit
 
     // This step marks which delta field will be encoded.
     for key in delta.keys() {
-        let (index, _) = find_decoder(key.as_bytes(), delta_decoder).unwrap();
+        let (index, _) = delta_decoder
+            .iter()
+            .enumerate()
+            .find(|(_, x)| x.name == key.as_str())
+            .unwrap();
+
         let quotient = index / 8;
         let remainder = index % 8;
 
@@ -144,157 +149,65 @@ pub fn write_delta(delta: &Delta, delta_decoder: &DeltaDecoder, bw: &mut BitWrit
 
     // We have to write delta by the described order.
     for description in delta_decoder {
-        if delta.contains_key(from_utf8(&description.name).unwrap()) {
-            write_delta_field(description, find_delta_value(&description.name, delta), bw);
+        if delta.contains_key(&description.name) {
+            write_delta_field(description, delta.get(&description.name).unwrap(), bw);
         }
     }
 }
 
-fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWriter) {
-    let lhs = description.flags;
+fn write_delta_field(description: &DeltaDecoderS, value: &DeltaValue, bw: &mut BitWriter) {
+    // delta writing does not need to care about flags
+    match value {
+        DeltaValue::ByteSigned(x) => {
+            let res = x * description.divisor as i8;
 
-    let is_signed = flag!(lhs, DeltaType::Signed);
-    let is_byte = flag!(lhs, DeltaType::Byte);
-    let is_short = flag!(lhs, DeltaType::Short);
-    let is_integer = flag!(lhs, DeltaType::Integer);
-    let is_angle = flag!(lhs, DeltaType::Angle);
-    let is_some_float = flag!(lhs, DeltaType::Float)
-        || flag!(lhs, DeltaType::TimeWindow8)
-        || flag!(lhs, DeltaType::TimeWindowBig);
-    let is_string = flag!(lhs, DeltaType::String);
-
-    if is_byte {
-        let bytes: [u8; 1] = value[..1].try_into().unwrap();
-        if is_signed {
-            let res_value = i8::from_le_bytes(bytes);
-            let signed_value = res_value * description.divisor as i8;
-            let is_negative = signed_value < 0;
-
-            let value = if is_negative {
-                bw.append_bit(true);
-                -signed_value
-            } else {
-                bw.append_bit(false);
-                signed_value
-            };
-
-            // value is positive so cast unsigned without side effects.
-            bw.append_u32_nbit(value as u32, description.bits - 1);
-        } else {
-            let res_value = u8::from_le_bytes(bytes);
-            let value = res_value * description.divisor as u8;
-
-            bw.append_u32_nbit(value as u32, description.bits);
+            bw.append_bit(x.is_negative());
+            bw.append_u32_nbit(res.abs() as u32, description.bits - 1);
         }
-    } else if is_short {
-        let bytes: [u8; 2] = value[..2].try_into().unwrap();
-        if is_signed {
-            let res_value = i16::from_le_bytes(bytes);
-            let signed_value = res_value * description.divisor as i16;
-            let is_negative = signed_value < 0;
-
-            let value = if is_negative {
-                bw.append_bit(true);
-                -signed_value
-            } else {
-                bw.append_bit(false);
-                signed_value
-            };
-
-            bw.append_u32_nbit(value as u32, description.bits - 1);
-        } else {
-            let res_value = u16::from_le_bytes(bytes);
-            let value = res_value * description.divisor as u16;
-
-            bw.append_u32_nbit(value as u32, description.bits);
+        DeltaValue::ByteUnsigned(x) => {
+            // FIXME: it is possible that divisor could have decimals
+            // and then this broke
+            // I think the actual correct way is to cast x to f32 then do math
+            // and then cast it back
+            // but no delta files use decimal devisor, so all good for now
+            bw.append_u32_nbit((x * description.divisor as u8) as u32, description.bits);
         }
-    } else if is_integer {
-        let bytes: [u8; 4] = value[..4].try_into().unwrap();
-        if is_signed {
-            let res_value = i32::from_le_bytes(bytes);
-            let signed_value = res_value * description.divisor as i32;
-            let is_negative = signed_value < 0;
+        DeltaValue::ShortSigned(x) => {
+            let res = x * description.divisor as i16;
 
-            let value = if is_negative {
-                bw.append_bit(true);
-                -signed_value
-            } else {
-                bw.append_bit(false);
-                signed_value
-            };
-
-            bw.append_u32_nbit(value as u32, description.bits - 1);
-        } else {
-            let res_value = u32::from_le_bytes(bytes);
-            let value = res_value * description.divisor as u32;
-
-            bw.append_u32_nbit(value, description.bits);
+            bw.append_bit(x.is_negative());
+            bw.append_u32_nbit(res.abs() as u32, description.bits - 1);
         }
-    } else if is_some_float {
-        let bytes: [u8; 4] = value[..4].try_into().unwrap();
-        if is_signed {
-            let res_value = f32::from_le_bytes(bytes);
-            let signed_value = res_value * description.divisor;
-
-            let value = if signed_value.is_sign_negative() {
-                bw.append_bit(true);
-                -signed_value
-            } else {
-                bw.append_bit(false);
-                signed_value
-            };
-
-            bw.append_u32_nbit(value.round() as u32, description.bits - 1);
-        } else {
-            let res_value = f32::from_le_bytes(bytes);
-            let value = res_value * description.divisor;
-
-            bw.append_u32_nbit(value.round() as u32, description.bits);
+        DeltaValue::ShortUnsigned(x) => {
+            bw.append_u32_nbit((x * description.divisor as u16) as u32, description.bits);
         }
-    } else if is_angle {
-        // Quick hack. Angle is i16 so here it is.
-        let bytes: [u8; 4] = value[..4].try_into().unwrap();
-        let res_value = f32::from_le_bytes(bytes);
-        let multiplier = 360f32 / (1 << description.bits) as f32;
-        let value = (res_value / multiplier).round() as u32;
-        bw.append_u32_nbit(value, description.bits);
-    } else if is_string {
-        for c in value {
-            bw.append_u8(*c);
+        DeltaValue::IntSigned(x) => {
+            let res = x * description.divisor as i32;
+
+            bw.append_bit(x.is_negative());
+            bw.append_u32_nbit(res.abs() as u32, description.bits - 1);
         }
-    } else {
-        unreachable!("Decoded value does not match any type. Should this happens?");
+        DeltaValue::IntUnsigned(x) => {
+            bw.append_u32_nbit(x * description.divisor as u32, description.bits);
+        }
+        DeltaValue::FloatSigned(x) => {
+            let res = x * description.divisor as f32;
+
+            bw.append_bit(res.is_sign_negative());
+            bw.append_u32_nbit(res.abs().round() as u32, description.bits - 1);
+        }
+        DeltaValue::FloatUnsigned(x) => {
+            bw.append_u32_nbit(
+                (x * description.divisor as f32).round() as u32,
+                description.bits,
+            );
+        }
+        DeltaValue::Angle(x) => {
+            let multiplier = 360f32 / (1 << description.bits) as f32;
+            bw.append_u32_nbit((x / multiplier).round() as u32, description.bits);
+        }
+        DeltaValue::String(x) => {
+            bw.append_string(x);
+        }
     }
-}
-
-/// There's no need to add null terminator because string from the table
-/// already includes it.
-fn find_decoder<'a>(
-    key: &'a [u8],
-    delta_decoder: &'a DeltaDecoder,
-) -> Option<(usize, &'a DeltaDecoderS)> {
-    for (index, description) in delta_decoder.iter().enumerate() {
-        if key.len() != description.name.len() {
-            continue;
-        }
-
-        if description.name[..description.name.len()]
-            .iter()
-            .zip(key)
-            .filter(|&(a, b)| a != b)
-            .count()
-            > 0
-        {
-            continue;
-        }
-
-        return Some((index, description));
-    }
-
-    None
-}
-
-/// Find delta from description name.
-fn find_delta_value<'a>(name: &[u8], delta: &'a Delta) -> &'a [u8] {
-    delta.get(from_utf8(name).unwrap()).unwrap()
 }

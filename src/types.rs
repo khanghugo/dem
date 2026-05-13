@@ -372,13 +372,13 @@ pub type BitSlice = _BitSlice<u8, Lsb0>;
 pub type ByteVec = Vec<u8>;
 
 // Delta
-pub type Delta = HashMap<String, ByteVec>;
+pub type Delta = HashMap<String, DeltaValue>;
 pub type DeltaDecoder = Vec<DeltaDecoderS>;
 pub type DeltaDecoderTable = HashMap<String, DeltaDecoder>;
 
 #[derive(Debug, Clone)]
 pub struct DeltaDecoderS {
-    pub name: ByteVec,
+    pub name: String,
     pub bits: u32,
     pub divisor: f32,
     pub flags: u32,
@@ -395,6 +395,43 @@ pub enum DeltaType {
     TimeWindowBig = 1 << 6,
     String = 1 << 7,
     Signed = 1 << 31,
+}
+
+#[derive(Debug, Clone)]
+pub enum DeltaValue {
+    ByteSigned(i8),
+    ByteUnsigned(u8),
+    ShortSigned(i16),
+    ShortUnsigned(u16),
+    IntSigned(i32),
+    IntUnsigned(u32),
+    FloatSigned(f32),
+    FloatUnsigned(f32),
+    Angle(f32),
+    String(String),
+}
+
+impl DeltaValue {
+    pub fn get_u32(&self) -> u32 {
+        match self {
+            Self::IntUnsigned(x) => *x,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn get_str(&self) -> &str {
+        match self {
+            Self::String(x) => x.as_str(),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn get_f32(&self) -> f32 {
+        match self {
+            Self::FloatSigned(x) | Self::FloatUnsigned(x) => *x,
+            _ => unreachable!(),
+        }
+    }
 }
 
 // Main
