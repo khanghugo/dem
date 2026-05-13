@@ -32,9 +32,7 @@ pub fn parse_delta(dd: &DeltaDecoder, br: &mut BitReader) -> Delta {
 }
 
 macro_rules! flag {
-    ($lhs:expr, $rhs:expr) => {{
-        $lhs as u32 & $rhs as u32 != 0
-    }};
+    ($lhs:expr, $rhs:expr) => {{ $lhs as u32 & $rhs as u32 != 0 }};
 }
 
 fn parse_delta_field(description: &DeltaDecoderS, br: &mut BitReader) -> DeltaValue {

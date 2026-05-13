@@ -1,11 +1,11 @@
 use nom::{
+    IResult,
     bytes::complete::{tag, take, take_until},
     combinator::{cut, fail, peek},
     error::context,
     multi::count,
     number::complete::le_f32,
     sequence::terminated,
-    IResult,
 };
 
 // nom helpers

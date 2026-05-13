@@ -2,12 +2,12 @@ use nom::{
     bytes::complete::take,
     combinator::{all_consuming, map},
     multi::{count, many0},
-    number::complete::{le_f32, le_i16, le_i32, le_i8, le_u16, le_u32, le_u8},
+    number::complete::{le_f32, le_i8, le_i16, le_i32, le_u8, le_u16, le_u32},
     sequence::tuple,
 };
 
 use crate::{
-    nom_helper::{nom_fail, take_point_float, NomResult},
+    nom_helper::{NomResult, nom_fail, take_point_float},
     types::{
         ClientData, ConsoleCommand, Demo, DemoBuffer, DemoGlobalState, DemoInfo, DemoState,
         Directory, DirectoryEntry, Event, EventArgs, Frame, FrameData, Header, MessageData,
