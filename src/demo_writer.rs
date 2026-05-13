@@ -113,7 +113,7 @@ impl Demo {
                         writer.append_i32(frame.buffer.len() as i32);
                         writer.append_u8_slice(frame.buffer.as_slice());
                     }
-                    FrameData::NetworkMessage(ref box_type) => {
+                    FrameData::NetworkMessage(box_type) => {
                         let data = &box_type.as_ref().1;
 
                         writer.append_f32(data.info.timestamp);

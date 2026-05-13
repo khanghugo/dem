@@ -630,10 +630,10 @@ impl OriginCoord {
             res += int;
         }
 
-        if let Some(is_neg) = self.is_negative {
-            if is_neg {
-                res = -res;
-            }
+        if let Some(is_neg) = self.is_negative
+            && is_neg
+        {
+            res = -res;
         }
 
         res
