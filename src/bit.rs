@@ -9,16 +9,16 @@ use super::*;
 pub type BitSlice = _BitSlice<u8, Lsb0>;
 
 // Wraps bytes into bits because doing this with nom is a very bad idea.
-pub struct BitReader {
-    pub bytes: BitVec,
+pub struct BitReader<'a> {
+    pub bytes: &'a BitSlice,
     // Bit offset, starting from starting of `bytes`.
     offset: usize,
 }
 
-impl BitReader {
-    pub fn new(bytes: &[u8]) -> Self {
+impl<'a> BitReader<'a> {
+    pub fn new(bytes: &'a [u8]) -> Self {
         BitReader {
-            bytes: BitVec::from_slice(bytes),
+            bytes: BitSlice::from_slice(bytes),
             offset: 0,
         }
     }
