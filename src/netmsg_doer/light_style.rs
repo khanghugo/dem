@@ -9,7 +9,7 @@ impl Doer for SvcLightStyle {
         map(tuple((le_u8, null_string)), |(index, light_info)| {
             SvcLightStyle {
                 index,
-                light_info: light_info.to_vec(),
+                light_info: light_info.to_owned(),
             }
         })(i)
     }

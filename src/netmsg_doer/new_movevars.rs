@@ -65,7 +65,7 @@ impl Doer for SvcNewMovevars {
                 roll_speed,
                 sky_color,
                 sky_vec,
-                sky_name: sky_name.to_vec(),
+                sky_name: sky_name.to_owned(),
             },
         )(i)
     }

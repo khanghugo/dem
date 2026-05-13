@@ -7,7 +7,7 @@ impl Doer for SvcResourceLocation {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(null_string, |download_url| SvcResourceLocation {
-            download_url: download_url.to_vec(),
+            download_url: download_url.to_owned(),
         })(i)
     }
 

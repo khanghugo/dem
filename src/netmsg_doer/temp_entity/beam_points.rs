@@ -40,7 +40,7 @@ impl Doer for TeBeamPoints {
                     life,
                     width,
                     noise,
-                    color: color.to_vec(),
+                    color: color.to_owned(),
                     speed,
                 }
             },

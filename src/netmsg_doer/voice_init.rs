@@ -8,7 +8,7 @@ impl Doer for SvcVoiceInit {
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(tuple((null_string, le_i8)), |(codec_name, quality)| {
             SvcVoiceInit {
-                codec_name: codec_name.to_vec(),
+                codec_name: codec_name.to_owned(),
                 quality,
             }
         })(i)

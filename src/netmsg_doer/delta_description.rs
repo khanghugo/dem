@@ -50,10 +50,10 @@ impl Doer for SvcDeltaDescription {
         Ok((
             i,
             Self {
-                name: name.to_vec(),
+                name: name.to_owned(),
                 total_fields,
                 fields: decoder,
-                clone: clone.to_vec(),
+                clone: clone.to_owned(),
             },
         ))
     }

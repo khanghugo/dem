@@ -10,7 +10,7 @@ impl Doer for SvcDecalName {
             tuple((le_u8, null_string)),
             |(position_index, decal_name)| Self {
                 position_index,
-                decal_name: decal_name.to_vec(),
+                decal_name: decal_name.to_owned(),
             },
         )(i)
     }

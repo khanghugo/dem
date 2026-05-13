@@ -2038,7 +2038,7 @@ impl std::fmt::Debug for ByteString {
 
 impl From<&[u8]> for ByteString {
     fn from(value: &[u8]) -> Self {
-        ByteString(value.to_vec())
+        ByteString(value.to_owned())
     }
 }
 

@@ -27,7 +27,7 @@ impl Doer for SvcSpawnStatic {
         ))(i)?;
 
         let (i, render_color) = if has_render_mode != 0 {
-            map(take(3usize), |what: &[u8]| Some(what.to_vec()))(i)?
+            map(take(3usize), |what: &[u8]| Some(what.to_owned()))(i)?
         } else {
             (i, None)
         };

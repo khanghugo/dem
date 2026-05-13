@@ -7,7 +7,7 @@ impl Doer for SvcCenterPrint {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(null_string, |message| Self {
-            message: message.to_vec(),
+            message: message.to_owned(),
         })(i)
     }
 

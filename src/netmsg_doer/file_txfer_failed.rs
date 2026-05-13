@@ -7,7 +7,7 @@ impl Doer for SvcFileTxferFailed {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(null_string, |file_name| SvcFileTxferFailed {
-            file_name: file_name.to_vec(),
+            file_name: file_name.to_owned(),
         })(i)
     }
 

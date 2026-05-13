@@ -10,7 +10,7 @@ impl Doer for SvcParticle {
             tuple((count(le_i16, 3), take(3usize), le_u8, le_u8)),
             |(origin, direction, count, color): (Vec<i16>, &[u8], _, _)| SvcParticle {
                 origin,
-                direction: direction.to_vec(),
+                direction: direction.to_owned(),
                 count,
                 color,
             },

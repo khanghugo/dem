@@ -7,7 +7,7 @@ impl Doer for SvcCutscene {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(null_string, |text| Self {
-            text: text.to_vec(),
+            text: text.to_owned(),
         })(i)
     }
 

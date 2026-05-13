@@ -14,7 +14,7 @@ impl Doer for SvcVoiceData {
             SvcVoiceData {
                 player_index,
                 size,
-                data: data.to_vec(),
+                data: data.to_owned(),
             },
         ))
     }

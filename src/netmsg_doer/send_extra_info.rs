@@ -8,7 +8,7 @@ impl Doer for SvcSendExtraInfo {
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(tuple((null_string, le_u8)), |(fallback_dir, can_cheat)| {
             SvcSendExtraInfo {
-                fallback_dir: fallback_dir.to_vec(),
+                fallback_dir: fallback_dir.to_owned(),
                 can_cheat,
             }
         })(i)

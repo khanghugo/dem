@@ -7,12 +7,12 @@ impl Doer for SvcRestore {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let (i, (save_name, map_count)) = tuple((null_string, le_u8))(i)?;
-        let (i, map_names) = count(map(null_string, |s| s.to_vec()), map_count as usize)(i)?;
+        let (i, map_names) = count(map(null_string, |s| s.to_owned()), map_count as usize)(i)?;
 
         Ok((
             i,
             SvcRestore {
-                save_name: save_name.to_vec(),
+                save_name: save_name.to_owned(),
                 map_count,
                 map_names,
             },

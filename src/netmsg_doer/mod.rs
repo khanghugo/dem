@@ -167,7 +167,7 @@ impl UserMessage {
                 } else {
                     vec![0].into()
                 },
-                data: data.to_vec(),
+                data: data.to_owned(),
             },
         ))
     }

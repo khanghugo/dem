@@ -72,7 +72,7 @@ pub fn parse_header(i: &[u8]) -> NomResult<'_, Header> {
             map_checksum,
             directory_offset,
         ): (_, _, &[u8], &[u8], _, _)| Header {
-            magic: magic.to_vec(),
+            magic: magic.to_owned(),
             demo_protocol,
             network_protocol,
             map_name: map_name.into(),
@@ -381,7 +381,7 @@ pub fn parse_demo_buffer(i: &[u8]) -> NomResult<'_, DemoBuffer> {
     let (i, buffer_length) = le_u32(i)?;
 
     map(take(buffer_length), |buffer: &[u8]| DemoBuffer {
-        buffer: buffer.to_vec(),
+        buffer: buffer.to_owned(),
     })(i)
 }
 
@@ -415,7 +415,7 @@ pub fn parse_network_messages<'a>(
 
             MessageData::Parsed(netmessages)
         }
-        MessageDataParseMode::Raw => MessageData::Raw(netmessage_data_chunk.to_vec()),
+        MessageDataParseMode::Raw => MessageData::Raw(netmessage_data_chunk.to_owned()),
         MessageDataParseMode::None => MessageData::None,
     };
 
