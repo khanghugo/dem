@@ -8,7 +8,8 @@ impl Doer for SvcPrint {
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(null_string, |message| SvcPrint {
             message: message.into(),
-        })(i)
+        })
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

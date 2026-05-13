@@ -6,9 +6,12 @@ impl Doer for SvcSetAngle {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(tuple((le_i16, le_i16, le_i16)), |(pitch, yaw, roll)| {
-            SvcSetAngle { pitch, yaw, roll }
-        })(i)
+        map((le_i16, le_i16, le_i16), |(pitch, yaw, roll)| SvcSetAngle {
+            pitch,
+            yaw,
+            roll,
+        })
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

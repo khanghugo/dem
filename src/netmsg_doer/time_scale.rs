@@ -6,7 +6,7 @@ impl Doer for SvcTimeScale {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(le_f32, |time_scale| SvcTimeScale { time_scale })(i)
+        map(le_f32, |time_scale| SvcTimeScale { time_scale }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

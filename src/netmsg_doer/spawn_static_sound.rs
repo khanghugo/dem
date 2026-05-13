@@ -7,7 +7,7 @@ impl Doer for SvcSpawnStaticSound {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((count(le_i16, 3), le_u16, le_u8, le_u8, le_u16, le_u8, le_u8)),
+            (count(le_i16, 3), le_u16, le_u8, le_u8, le_u16, le_u8, le_u8),
             |(origin, sound_index, volume, attenuation, entity_index, pitch, flags)| {
                 SvcSpawnStaticSound {
                     origin,
@@ -19,7 +19,8 @@ impl Doer for SvcSpawnStaticSound {
                     flags,
                 }
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

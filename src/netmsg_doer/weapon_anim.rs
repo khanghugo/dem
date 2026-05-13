@@ -7,12 +7,13 @@ impl Doer for SvcWeaponAnim {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((le_i8, le_i8)),
+            (le_i8, le_i8),
             |(sequence_number, weapon_model_body_group)| SvcWeaponAnim {
                 sequence_number,
                 weapon_model_body_group,
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

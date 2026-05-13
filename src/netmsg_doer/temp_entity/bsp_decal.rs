@@ -6,10 +6,10 @@ impl Doer for TeBspDecal {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        let (i, unknown1) = take(8usize)(i)?;
+        let (i, unknown1) = take(8usize).parse(i)?;
         let (i, entity_index) = le_i16(i)?;
         let (i, unknown2) = if entity_index != 0 {
-            map(take(2usize), |i: &[u8]| Some(i.to_owned()))(i)?
+            map(take(2usize), |i: &[u8]| Some(i.to_owned())).parse(i)?
         } else {
             (i, None)
         };

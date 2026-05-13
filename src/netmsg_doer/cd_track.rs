@@ -6,10 +6,11 @@ impl Doer for SvcCdTrack {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(tuple((le_i8, le_i8)), |(track, loop_track)| Self {
+        map((le_i8, le_i8), |(track, loop_track)| Self {
             track,
             loop_track,
-        })(i)
+        })
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

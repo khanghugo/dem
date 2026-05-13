@@ -1,12 +1,9 @@
-use nom::bytes::complete::take;
-use nom::combinator::{fail, map};
-use nom::error::context;
-use nom::number::complete::le_u8;
-
 use nom::{
+    Parser,
+    bytes::complete::take,
+    combinator::{fail, map},
     multi::count,
-    number::complete::{le_f32, le_i8, le_i16, le_i32, le_u16, le_u32},
-    sequence::tuple,
+    number::complete::{le_f32, le_i8, le_i16, le_i32, le_u8, le_u16, le_u32},
 };
 
 use crate::nom_helper::{NomResult, null_string};
@@ -152,10 +149,10 @@ impl UserMessage {
         let is_size = custom_message.is_some() && custom_message.unwrap().size > -1; // equivalent to -1
 
         let (i, data) = if is_size {
-            take(custom_message.unwrap().size as usize)(i)?
+            take(custom_message.unwrap().size as usize).parse(i)?
         } else {
             let (i, length) = le_u8(i)?;
-            take(length as usize)(i)?
+            take(length as usize).parse(i)?
         };
 
         Ok((
@@ -256,7 +253,7 @@ impl EngineMessage {
             57 => wrap!(SvcSendCvarValue, i, aux),
             58 => wrap!(SvcSendCvarValue2, i, aux),
             59..=63 => (i, EngineMessage::SvcBad),
-            _ => context("Bad engine message number", fail)(i)?,
+            _ => fail().parse("Bad engine message number".as_bytes())?,
         };
 
         Ok((i, res))

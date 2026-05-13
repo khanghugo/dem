@@ -6,12 +6,11 @@ impl Doer for SvcLightStyle {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(tuple((le_u8, null_string)), |(index, light_info)| {
-            SvcLightStyle {
-                index,
-                light_info: light_info.to_owned(),
-            }
-        })(i)
+        map((le_u8, null_string), |(index, light_info)| SvcLightStyle {
+            index,
+            light_info: light_info.to_owned(),
+        })
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

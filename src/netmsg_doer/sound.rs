@@ -50,7 +50,7 @@ impl Doer for SvcSound {
             1
         };
 
-        let (i, _) = take(br.get_consumed_bytes())(i)?;
+        let (i, _) = take(br.get_consumed_bytes()).parse(i)?;
 
         Ok((
             i,

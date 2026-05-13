@@ -22,12 +22,13 @@ impl Doer for SvcSpawnStatic {
                 rotation_z,
                 has_render_mode,
             ),
-        ) = tuple((
+        ) = (
             le_i16, le_i8, le_i8, le_i16, le_i8, le_i16, le_i8, le_i16, le_i8, le_i16, le_i8, le_i8,
-        ))(i)?;
+        )
+            .parse(i)?;
 
         let (i, render_color) = if has_render_mode != 0 {
-            map(take(3usize), |what: &[u8]| Some(what.to_owned()))(i)?
+            map(take(3usize), |what: &[u8]| Some(what.to_owned())).parse(i)?
         } else {
             (i, None)
         };

@@ -41,7 +41,7 @@ impl Doer for SvcDeltaDescription {
 
         let range = br.get_consumed_bytes();
         let clone = &clone[..range];
-        let (i, _) = take(range)(i)?;
+        let (i, _) = take(range).parse(i)?;
 
         // mutate delta_decoders
         aux.delta_decoders

@@ -6,7 +6,7 @@ impl Doer for SvcTime {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(le_f32, |time| SvcTime { time })(i)
+        map(le_f32, |time| SvcTime { time }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

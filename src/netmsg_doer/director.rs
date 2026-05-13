@@ -7,8 +7,8 @@ impl Doer for SvcDirector {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         // https://github.com/ValveSoftware/halflife/blob/b1b5cf5892918535619b2937bb927e46cb097ba1/common/hltv.h#L17-L35
-        let (i, (length, command)) = tuple((le_u8, le_u8))(i)?;
-        let (i, message) = take(length - 1)(i)?;
+        let (i, (length, command)) = (le_u8, le_u8).parse(i)?;
+        let (i, message) = take(length - 1).parse(i)?;
 
         Ok((
             i,

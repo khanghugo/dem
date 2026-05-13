@@ -7,14 +7,15 @@ impl Doer for SvcParticle {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((count(le_i16, 3), take(3usize), le_u8, le_u8)),
+            (count(le_i16, 3), take(3usize), le_u8, le_u8),
             |(origin, direction, count, color): (Vec<i16>, &[u8], _, _)| SvcParticle {
                 origin,
                 direction: direction.to_owned(),
                 count,
                 color,
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

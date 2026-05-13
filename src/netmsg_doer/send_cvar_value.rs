@@ -6,7 +6,7 @@ impl Doer for SvcSendCvarValue {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(null_string, |name| SvcSendCvarValue { name: name.into() })(i)
+        map(null_string, |name| SvcSendCvarValue { name: name.into() }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

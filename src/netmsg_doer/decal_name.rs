@@ -6,13 +6,11 @@ impl Doer for SvcDecalName {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(
-            tuple((le_u8, null_string)),
-            |(position_index, decal_name)| Self {
-                position_index,
-                decal_name: decal_name.to_owned(),
-            },
-        )(i)
+        map((le_u8, null_string), |(position_index, decal_name)| Self {
+            position_index,
+            decal_name: decal_name.to_owned(),
+        })
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

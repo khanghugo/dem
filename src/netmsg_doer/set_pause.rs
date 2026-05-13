@@ -6,7 +6,7 @@ impl Doer for SvcSetPause {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(le_i8, |is_paused| SvcSetPause { is_paused })(i)
+        map(le_i8, |is_paused| SvcSetPause { is_paused }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

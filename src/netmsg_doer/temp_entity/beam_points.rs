@@ -7,7 +7,7 @@ impl Doer for TeBeamPoints {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((
+            (
                 count(le_i16, 3),
                 count(le_i16, 3),
                 le_i16,
@@ -18,7 +18,7 @@ impl Doer for TeBeamPoints {
                 le_u8,
                 take(4usize),
                 le_u8,
-            )),
+            ),
             |(
                 start_position,
                 end_position,
@@ -44,7 +44,8 @@ impl Doer for TeBeamPoints {
                     speed,
                 }
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

@@ -6,8 +6,8 @@ impl Doer for SvcVoiceData {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        let (i, (player_index, size)) = tuple((le_u8, le_u16))(i)?;
-        let (i, data) = take(size)(i)?;
+        let (i, (player_index, size)) = (le_u8, le_u16).parse(i)?;
+        let (i, data) = take(size).parse(i)?;
 
         Ok((
             i,

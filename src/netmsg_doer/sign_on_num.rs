@@ -6,7 +6,7 @@ impl Doer for SvcSignOnNum {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(le_i8, |sign| SvcSignOnNum { sign })(i)
+        map(le_i8, |sign| SvcSignOnNum { sign }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

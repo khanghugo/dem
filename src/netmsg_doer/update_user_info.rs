@@ -7,14 +7,15 @@ impl Doer for SvcUpdateUserInfo {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((le_u8, le_u32, null_string, take(16usize))),
+            (le_u8, le_u32, null_string, take(16usize)),
             |(index, id, user_info, cd_key_hash)| SvcUpdateUserInfo {
                 index,
                 id,
                 user_info: user_info.into(),
                 cd_key_hash: cd_key_hash.into(),
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

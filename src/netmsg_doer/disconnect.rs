@@ -8,7 +8,8 @@ impl Doer for SvcDisconnect {
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(null_string, |reason| Self {
             reason: reason.to_owned(),
-        })(i)
+        })
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

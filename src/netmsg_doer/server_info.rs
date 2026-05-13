@@ -7,7 +7,7 @@ impl Doer for SvcServerInfo {
 
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((
+            (
                 le_i32,
                 le_i32,
                 le_i32,
@@ -20,7 +20,7 @@ impl Doer for SvcServerInfo {
                 null_string,
                 null_string,
                 le_u8,
-            )),
+            ),
             |(
                 protocol,
                 spawn_count,
@@ -53,7 +53,8 @@ impl Doer for SvcServerInfo {
                     unknown,
                 }
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

@@ -54,7 +54,7 @@ impl Doer for SvcEvent {
             .collect();
 
         let range = br.get_consumed_bytes();
-        let (i, _) = take(range)(i)?;
+        let (i, _) = take(range).parse(i)?;
 
         Ok((
             i,

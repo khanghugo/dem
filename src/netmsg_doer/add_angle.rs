@@ -1,3 +1,5 @@
+use nom::Parser;
+
 use super::*;
 
 impl Doer for SvcAddAngle {
@@ -6,7 +8,7 @@ impl Doer for SvcAddAngle {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(le_i16, |angle_to_add| Self { angle_to_add })(i)
+        map(le_i16, |angle_to_add| Self { angle_to_add }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

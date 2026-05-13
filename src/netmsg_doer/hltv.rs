@@ -8,7 +8,7 @@ impl Doer for SvcHltv {
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         aux.is_hltv = true;
 
-        map(le_u8, |mode| SvcHltv { mode })(i)
+        map(le_u8, |mode| SvcHltv { mode }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

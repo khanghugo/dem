@@ -25,178 +25,234 @@ impl Doer for SvcTempEntity {
             0 => wrap_ent!(TeBeamPoints, TeBeamPoints, i, aux),
             1 => map(take(20usize), |res: &[u8]| {
                 TempEntity::TeBeamEntPoint(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             2 => map(take(6usize), |res: &[u8]| {
                 TempEntity::TeGunshot(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             // The docs say 6 but its parser says 11.
             3 => map(take(11usize), |res: &[u8]| {
                 TempEntity::TeExplosion(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             4 => map(take(6usize), |res: &[u8]| {
                 TempEntity::TeTarExplosion(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             5 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TeSmoke(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             6 => map(take(12usize), |res: &[u8]| {
                 TempEntity::TeTracer(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             7 => map(take(17usize), |res: &[u8]| {
                 TempEntity::TeLightning(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             8 => map(take(16usize), |res: &[u8]| {
                 TempEntity::TeBeamEnts(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             9 => map(take(6usize), |res: &[u8]| {
                 TempEntity::TeSparks(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             10 => map(take(6usize), |res: &[u8]| {
                 TempEntity::TeLavaSplash(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             11 => map(take(6usize), |res: &[u8]| {
                 TempEntity::TeTeleport(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             12 => map(take(8usize), |res: &[u8]| {
                 TempEntity::TeExplosion2(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             13 => wrap_ent!(TeBspDecal, TeBspDecal, i, aux),
             14 => map(take(9usize), |res: &[u8]| {
                 TempEntity::TeImplosion(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             15 => map(take(19usize), |res: &[u8]| {
                 TempEntity::TeSpriteTrail(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             17 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TeSprite(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             18 => map(take(16usize), |res: &[u8]| {
                 TempEntity::TeBeamSprite(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             19 => map(take(24usize), |res: &[u8]| {
                 TempEntity::TeBeamTorus(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             20 => map(take(24usize), |res: &[u8]| {
                 TempEntity::TeBeamDisk(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             21 => map(take(24usize), |res: &[u8]| {
                 TempEntity::TeBeamCylinder(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             22 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TeBeamFollow(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             23 => map(take(11usize), |res: &[u8]| {
                 TempEntity::TeGlowSprite(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             24 => map(take(16usize), |res: &[u8]| {
                 TempEntity::TeBeamRing(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             25 => map(take(19usize), |res: &[u8]| {
                 TempEntity::TeStreakSplash(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             27 => map(take(12usize), |res: &[u8]| {
                 TempEntity::TeDLight(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             28 => map(take(16usize), |res: &[u8]| {
                 TempEntity::TeELight(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             29 => wrap_ent!(TeTextMessage, TeTextMessage, i, aux),
             30 => map(take(17usize), |res: &[u8]| {
                 TempEntity::TeLine(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             31 => map(take(17usize), |res: &[u8]| {
                 TempEntity::TeBox(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             99 => map(take(2usize), |res: &[u8]| {
                 TempEntity::TeKillBeam(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             100 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TeLargeFunnel(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             101 => map(take(14usize), |res: &[u8]| {
                 TempEntity::TeBloodStream(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             102 => map(take(12usize), |res: &[u8]| {
                 TempEntity::TeShowLine(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             103 => map(take(14usize), |res: &[u8]| {
                 TempEntity::TeBlood(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             104 => map(take(9usize), |res: &[u8]| {
                 TempEntity::TeDecal(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             105 => map(take(5usize), |res: &[u8]| {
                 TempEntity::TeFizz(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             106 => map(take(17usize), |res: &[u8]| {
                 TempEntity::TeModel(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             107 => map(take(13usize), |res: &[u8]| {
                 TempEntity::TeExplodeModel(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             // Docs say 13 but its parser says 24.
             108 => map(take(24usize), |res: &[u8]| {
                 TempEntity::TeBreakModel(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             109 => map(take(9usize), |res: &[u8]| {
                 TempEntity::TeGunshotDecal(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             110 => map(take(17usize), |res: &[u8]| {
                 TempEntity::TeSpriteSpray(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             111 => map(take(7usize), |res: &[u8]| {
                 TempEntity::TeArmorRicochet(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             112 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TePlayerDecal(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             113 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TeBubbles(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             114 => map(take(19usize), |res: &[u8]| {
                 TempEntity::TeBubbleTrail(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             115 => map(take(12usize), |res: &[u8]| {
                 TempEntity::TeBloodSprite(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             116 => map(take(7usize), |res: &[u8]| {
                 TempEntity::TeWorldDecal(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             117 => map(take(7usize), |res: &[u8]| {
                 TempEntity::TeWorldDecalHigh(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             118 => map(take(9usize), |res: &[u8]| {
                 TempEntity::TeDecalHigh(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             119 => map(take(16usize), |res: &[u8]| {
                 TempEntity::TeProjectile(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             120 => map(take(18usize), |res: &[u8]| {
                 TempEntity::TeSpray(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             121 => map(take(5usize), |res: &[u8]| {
                 TempEntity::TePlayerSprites(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             122 => map(take(10usize), |res: &[u8]| {
                 TempEntity::TeParticleBurst(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             123 => map(take(9usize), |res: &[u8]| {
                 TempEntity::TeFireField(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             124 => map(take(7usize), |res: &[u8]| {
                 TempEntity::TePlayerAttachment(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             125 => map(take(1usize), |res: &[u8]| {
                 TempEntity::TeKillPlayerAttachment(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             // Docs say 10 but its parser says 18.
             126 => map(take(18usize), |res: &[u8]| {
                 TempEntity::TeMultigunShot(res.to_owned())
-            })(i)?,
+            })
+            .parse(i)?,
             127 => map(take(15usize), |res: &[u8]| {
                 TempEntity::TeUserTracer(res.to_owned())
-            })(i)?,
-            _ => context("Bad temp entity number", fail)(i)?,
+            })
+            .parse(i)?,
+            _ => fail().parse("bad entity number".as_bytes())?,
         };
 
         Ok((

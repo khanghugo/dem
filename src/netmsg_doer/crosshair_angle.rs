@@ -6,7 +6,7 @@ impl Doer for SvcCrosshairAngle {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(tuple((le_i16, le_i16)), |(pitch, yaw)| Self { pitch, yaw })(i)
+        map((le_i16, le_i16), |(pitch, yaw)| Self { pitch, yaw }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

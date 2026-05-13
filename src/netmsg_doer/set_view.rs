@@ -6,7 +6,7 @@ impl Doer for SvcSetView {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(le_i16, |entity_index| SvcSetView { entity_index })(i)
+        map(le_i16, |entity_index| SvcSetView { entity_index }).parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

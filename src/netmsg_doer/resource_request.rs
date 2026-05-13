@@ -6,13 +6,13 @@ impl Doer for SvcResourceRequest {
     }
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        map(
-            tuple((le_i32, count(le_u8, 4usize))),
-            |(spawn_count, unknown)| SvcResourceRequest {
+        map((le_i32, count(le_u8, 4usize)), |(spawn_count, unknown)| {
+            SvcResourceRequest {
                 spawn_count,
                 unknown,
-            },
-        )(i)
+            }
+        })
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

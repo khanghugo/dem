@@ -7,7 +7,7 @@ impl Doer for SvcNewUserMsg {
 
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((le_u8, le_i8, take(16usize))),
+            (le_u8, le_i8, take(16usize)),
             |(index, size, name): (_, _, &[u8])| {
                 let msg = Self {
                     index,
@@ -21,7 +21,8 @@ impl Doer for SvcNewUserMsg {
 
                 msg
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

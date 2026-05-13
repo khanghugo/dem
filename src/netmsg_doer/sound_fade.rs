@@ -7,14 +7,15 @@ impl Doer for SvcSoundFade {
 
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         map(
-            tuple((le_u8, le_u8, le_u8, le_u8)),
+            (le_u8, le_u8, le_u8, le_u8),
             |(initial_percent, hold_time, fade_out_time, fade_in_time)| SvcSoundFade {
                 initial_percent,
                 hold_time,
                 fade_out_time,
                 fade_in_time,
             },
-        )(i)
+        )
+        .parse(i)
     }
 
     fn write(&self, _: &DemoGlobalState) -> ByteVec {

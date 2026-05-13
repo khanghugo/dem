@@ -19,7 +19,7 @@ impl Doer for TeTextMessage {
                 fade_out_time,
                 hold_time,
             ),
-        ) = tuple((
+        ) = (
             le_i8,
             le_i16,
             le_i16,
@@ -29,10 +29,11 @@ impl Doer for TeTextMessage {
             le_i16,
             le_i16,
             le_i16,
-        ))(i)?;
+        )
+            .parse(i)?;
 
         let (i, effect_time) = if effect != 0 {
-            map(le_i16, Some)(i)?
+            map(le_i16, Some).parse(i)?
         } else {
             (i, None)
         };
