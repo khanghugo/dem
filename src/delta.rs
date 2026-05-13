@@ -162,7 +162,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &DeltaValue, bw: &mut B
             let res = x * description.divisor as i8;
 
             bw.append_bit(x.is_negative());
-            bw.append_u32_nbit(res.abs() as u32, description.bits - 1);
+            bw.append_u32_nbit(res.unsigned_abs() as u32, description.bits - 1);
         }
         DeltaValue::ByteUnsigned(x) => {
             // FIXME: it is possible that divisor could have decimals
@@ -176,7 +176,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &DeltaValue, bw: &mut B
             let res = x * description.divisor as i16;
 
             bw.append_bit(x.is_negative());
-            bw.append_u32_nbit(res.abs() as u32, description.bits - 1);
+            bw.append_u32_nbit(res.unsigned_abs() as u32, description.bits - 1);
         }
         DeltaValue::ShortUnsigned(x) => {
             bw.append_u32_nbit((x * description.divisor as u16) as u32, description.bits);
@@ -185,22 +185,19 @@ fn write_delta_field(description: &DeltaDecoderS, value: &DeltaValue, bw: &mut B
             let res = x * description.divisor as i32;
 
             bw.append_bit(x.is_negative());
-            bw.append_u32_nbit(res.abs() as u32, description.bits - 1);
+            bw.append_u32_nbit(res.unsigned_abs(), description.bits - 1);
         }
         DeltaValue::IntUnsigned(x) => {
             bw.append_u32_nbit(x * description.divisor as u32, description.bits);
         }
         DeltaValue::FloatSigned(x) => {
-            let res = x * description.divisor as f32;
+            let res = x * description.divisor;
 
             bw.append_bit(res.is_sign_negative());
             bw.append_u32_nbit(res.abs().round() as u32, description.bits - 1);
         }
         DeltaValue::FloatUnsigned(x) => {
-            bw.append_u32_nbit(
-                (x * description.divisor as f32).round() as u32,
-                description.bits,
-            );
+            bw.append_u32_nbit((x * description.divisor).round() as u32, description.bits);
         }
         DeltaValue::Angle(x) => {
             let multiplier = 360f32 / (1 << description.bits) as f32;
