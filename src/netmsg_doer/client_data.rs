@@ -8,8 +8,6 @@ impl Doer for SvcClientData {
     }
 
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
-        let aux = aux;
-
         if aux.is_hltv {
             return Ok((
                 i,

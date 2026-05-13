@@ -146,8 +146,6 @@ impl NetMessage {
 
 impl UserMessage {
     fn parse<'a>(i: &'a [u8], id: u8, aux: &mut DemoGlobalState) -> NomResult<'a, UserMessage> {
-        let aux = aux;
-
         let custom_message = aux.custom_messages.get(&id);
 
         let is_set = custom_message.is_some();
@@ -165,7 +163,7 @@ impl UserMessage {
             UserMessage {
                 id,
                 name: if is_set {
-                    custom_message.unwrap().name.clone().into()
+                    custom_message.unwrap().name.clone()
                 } else {
                     vec![0].into()
                 },

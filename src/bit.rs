@@ -70,11 +70,11 @@ impl<'a> BitReader<'a> {
     pub fn read_bytes<const N: usize>(&mut self) -> [u8; N] {
         let mut res = [0u8; N];
 
-        for i in 0..N {
+        for x in res.iter_mut().take(N) {
             let start = self.offset;
             let end = start + 8;
 
-            res[i] = self.bytes[start..end].load_le::<u8>();
+            *x = self.bytes[start..end].load_le::<u8>();
 
             self.offset += 8;
         }
@@ -97,7 +97,7 @@ impl<'a> BitReader<'a> {
 
     /// Returns the number of bits read into bytes.
     pub fn get_consumed_bytes(&self) -> usize {
-        (self.get_offset() + 7) / 8
+        self.get_offset().div_ceil(8)
     }
 }
 
@@ -186,11 +186,11 @@ impl BitWriter {
     }
 
     pub fn append_u24(&mut self, i: u32) {
-        self.append_u32_nbit(i as u32, 24);
+        self.append_u32_nbit(i, 24);
     }
 
     pub fn append_u32(&mut self, i: u32) {
-        self.append_u32_nbit(i as u32, 32);
+        self.append_u32_nbit(i, 32);
     }
 
     pub fn append_string(&mut self, s: impl Into<String> + AsRef<str>) {

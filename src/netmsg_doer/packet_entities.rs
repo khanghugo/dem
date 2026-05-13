@@ -29,8 +29,8 @@ impl Doer for SvcPacketEntities {
                 Some(br.read_1_bit())
             };
             let (absolute_entity_index, entity_index_difference) =
-                if is_absolute_entity_index.is_some() {
-                    if !is_absolute_entity_index.unwrap() {
+                if let Some(is_absolute_entity_index) = is_absolute_entity_index {
+                    if !is_absolute_entity_index {
                         let val = br.read_n_bit(6).to_u8();
                         entity_index += val as u16;
                         (None, Some(val))

@@ -106,9 +106,9 @@ pub enum FrameData {
 }
 
 impl FrameData {
-    pub fn get_network_message(&self) -> Option<&Box<(NetworkMessageType, NetworkMessage)>> {
+    pub fn get_network_message(&self) -> Option<&(NetworkMessageType, NetworkMessage)> {
         if let FrameData::NetworkMessage(x) = &self {
-            return x.into();
+            return Some(x);
         }
 
         None
@@ -599,7 +599,7 @@ impl OriginCoord {
             }
         }
 
-        return res;
+        res
     }
 }
 
