@@ -19,7 +19,7 @@ use crate::{
     bit::BitWriter,
     delta::{parse_delta, write_delta},
     types::{
-        BitVec, ByteVec, EngineMessage, SvcAddAngle, SvcCdTrack, SvcCenterPrint, SvcClientData,
+        ByteVec, EngineMessage, SvcAddAngle, SvcCdTrack, SvcCenterPrint, SvcClientData,
         SvcCrosshairAngle, SvcCustomization, SvcCutscene, SvcDecalName, SvcDeltaDescription,
         SvcDeltaPacketEntities, SvcDirector, SvcDisconnect, SvcEvent, SvcEventReliable,
         SvcFileTxferFailed, SvcFinale, SvcHltv, SvcLightStyle, SvcNewMovevars, SvcNewUserMsg,

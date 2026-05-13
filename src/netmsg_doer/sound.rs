@@ -10,24 +10,23 @@ impl Doer for SvcSound {
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
 
-        let flags = br.read_n_bit(9).to_owned();
-        let flag_u = flags.to_u32();
-        let volume = if flag_u & 1 != 0 {
-            Some(br.read_n_bit(8).to_owned())
+        let flags = br.read_n_bit(9).to_u16();
+        let volume = if flags & 1 != 0 {
+            Some(br.read_n_bit(8).to_u8())
         } else {
             None
         };
-        let attenuation = if flag_u & 2 != 0 {
-            Some(br.read_n_bit(8).to_owned())
+        let attenuation = if flags & 2 != 0 {
+            Some(br.read_n_bit(8).to_u8())
         } else {
             None
         };
-        let channel = br.read_n_bit(3).to_owned();
-        let entity_index = br.read_n_bit(11).to_owned();
-        let (sound_index_long, sound_index_short) = if flag_u & 4 != 0 {
-            (Some(br.read_n_bit(16).to_owned()), None)
+        let channel = br.read_n_bit(3).to_u8();
+        let entity_index = br.read_n_bit(11).to_u16();
+        let (sound_index_long, sound_index_short) = if flags & 4 != 0 {
+            (Some(br.read_n_bit(16).to_u16()), None)
         } else {
-            (None, Some(br.read_n_bit(8).to_owned()))
+            (None, Some(br.read_n_bit(8).to_u8()))
         };
         let (has_x, has_y, has_z) = (br.read_1_bit(), br.read_1_bit(), br.read_1_bit());
         let origin_x = if has_x {
@@ -45,10 +44,10 @@ impl Doer for SvcSound {
         } else {
             None
         };
-        let pitch = if flag_u & 8 != 0 {
-            br.read_n_bit(8).to_owned()
+        let pitch = if flags & 8 != 0 {
+            br.read_n_bit(8).to_u8()
         } else {
-            BitVec::from_element(1u8)
+            1
         };
 
         let (i, _) = take(br.get_consumed_bytes())(i)?;
@@ -81,28 +80,28 @@ impl Doer for SvcSound {
 
         let mut bw = BitWriter::new();
 
-        let should_write_volume = self.flags.to_u16() & 1 != 0;
-        let should_write_attenuation = self.flags.to_u16() & 2 != 0;
-        let should_write_sound_index_long = self.flags.to_u16() & 4 != 0;
-        let should_write_pitch = self.flags.to_u16() & 8 != 0;
+        let should_write_volume = self.flags & 1 != 0;
+        let should_write_attenuation = self.flags & 2 != 0;
+        let should_write_sound_index_long = self.flags & 4 != 0;
+        let should_write_pitch = self.flags & 8 != 0;
 
-        bw.append_vec(&self.flags);
+        bw.append_u9(self.flags);
 
         if should_write_volume {
-            bw.append_vec(self.volume.as_ref().unwrap());
+            bw.append_u8(self.volume.unwrap());
         }
 
         if should_write_attenuation {
-            bw.append_vec(self.attenuation.as_ref().unwrap());
+            bw.append_u8(self.attenuation.unwrap());
         }
 
-        bw.append_vec(&self.channel);
-        bw.append_vec(&self.entity_index);
+        bw.append_u3(self.channel);
+        bw.append_u11(self.entity_index);
 
         if should_write_sound_index_long {
-            bw.append_vec(self.sound_index_long.as_ref().unwrap())
+            bw.append_u16(self.sound_index_long.unwrap())
         } else {
-            bw.append_vec(self.sound_index_short.as_ref().unwrap())
+            bw.append_u8(self.sound_index_short.unwrap())
         }
 
         bw.append_bit(self.has_x);
@@ -120,7 +119,7 @@ impl Doer for SvcSound {
         }
 
         if should_write_pitch {
-            bw.append_vec(&self.pitch);
+            bw.append_u8(self.pitch);
         }
 
         writer.append_u8_slice(bw.get_u8_vec().as_slice());
@@ -140,13 +139,13 @@ fn parse_origin(br: &mut BitReader) -> OriginCoord {
     };
 
     let int_value = if int_flag {
-        Some(br.read_n_bit(12).to_owned())
+        Some(br.read_n_bit(12).to_u16())
     } else {
         None
     };
 
     let fraction_value = if fraction_flag {
-        Some(br.read_n_bit(3).to_owned())
+        Some(br.read_n_bit(3).to_u8())
     } else {
         None
     };
@@ -172,11 +171,11 @@ fn write_origin(i: &OriginCoord, bw: &mut BitWriter) {
     }
 
     if let Some(int) = &i.int_value {
-        bw.append_vec(int);
+        bw.append_u12(*int);
     }
 
     if let Some(frac) = &i.fraction_value {
-        bw.append_vec(frac);
+        bw.append_u3(*frac);
     }
 
     // bw.append_vec(self.unknown);

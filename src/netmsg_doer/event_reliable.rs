@@ -8,11 +8,11 @@ impl Doer for SvcEventReliable {
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
 
-        let event_index = br.read_n_bit(10).to_owned();
+        let event_index = br.read_n_bit(10).to_u16();
         let event_args = parse_delta(aux.delta_decoders.get("event_t\0").unwrap(), &mut br);
         let has_fire_time = br.read_1_bit();
         let fire_time = if has_fire_time {
-            Some(br.read_n_bit(16).to_owned())
+            Some(br.read_n_bit(16).to_u16())
         } else {
             None
         };
@@ -37,7 +37,8 @@ impl Doer for SvcEventReliable {
 
         writer.append_u8(self.id());
 
-        bw.append_vec(&self.event_index);
+        bw.append_u10(self.event_index);
+
         write_delta(
             &self.event_args,
             aux.delta_decoders.get("event_t\0").unwrap(),
@@ -46,7 +47,7 @@ impl Doer for SvcEventReliable {
 
         bw.append_bit(self.has_fire_time);
         if self.has_fire_time {
-            bw.append_vec(self.fire_time.as_ref().unwrap());
+            bw.append_u16(self.fire_time.unwrap());
         }
 
         writer.append_u8_slice(&bw.get_u8_vec());

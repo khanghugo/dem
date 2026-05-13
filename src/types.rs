@@ -6,7 +6,7 @@ use std::{
 
 use bitvec::{order::Lsb0, slice::BitSlice as _BitSlice, vec::BitVec as _BitVec};
 
-use crate::{bit::BitSliceCast, utils::get_initial_delta};
+use crate::utils::get_initial_delta;
 
 /// Auxillary data required for parsing/writing certain messages.
 ///
@@ -510,21 +510,21 @@ pub struct SvcDisconnect {
 #[derive(Debug, Clone)]
 pub struct SvcEvent {
     /// `[bool; 5]`
-    pub event_count: BitVec,
+    pub event_count: u8,
     pub events: Vec<EventS>,
 }
 #[derive(Debug, Clone)]
 pub struct EventS {
     /// `[bool; 10]`
-    pub event_index: BitVec,
+    pub event_index: u16,
     pub has_packet_index: bool,
     /// `[bool; 11]`
-    pub packet_index: Option<BitVec>,
+    pub packet_index: Option<u16>,
     pub has_delta: Option<bool>,
     pub delta: Option<Delta>,
     pub has_fire_time: bool,
     /// `[bool; 16]`
-    pub fire_time: Option<BitVec>,
+    pub fire_time: Option<u16>,
 }
 
 /// SVC_VERSION 4
@@ -543,22 +543,27 @@ pub struct SvcSetView {
 #[derive(Debug, Clone)]
 pub struct SvcSound {
     /// `[bool; 9]`
-    pub flags: BitVec,
-    pub volume: Option<BitVec>,
-    pub attenuation: Option<BitVec>,
+    pub flags: u16,
+    /// `[bool; 8]`
+    pub volume: Option<u8>,
+    /// `[bool; 8]`
+    pub attenuation: Option<u8>,
     /// `[bool; 3]`
-    pub channel: BitVec,
+    pub channel: u8,
     /// `[bool; 11]`
-    pub entity_index: BitVec,
-    pub sound_index_long: Option<BitVec>,
-    pub sound_index_short: Option<BitVec>,
+    pub entity_index: u16,
+    /// `[bool; 16]`
+    pub sound_index_long: Option<u16>,
+    /// `[bool; 8]`
+    pub sound_index_short: Option<u8>,
     pub has_x: bool,
     pub has_y: bool,
     pub has_z: bool,
     pub origin_x: Option<OriginCoord>,
     pub origin_y: Option<OriginCoord>,
     pub origin_z: Option<OriginCoord>,
-    pub pitch: BitVec,
+    /// `[bool; 8]`
+    pub pitch: u8,
 }
 #[derive(Debug, Clone)]
 pub struct OriginCoord {
@@ -566,9 +571,9 @@ pub struct OriginCoord {
     pub fraction_flag: bool,
     pub is_negative: Option<bool>,
     /// `[bool; 12]`
-    pub int_value: Option<BitVec>,
+    pub int_value: Option<u16>,
     /// `[bool; 3]`
-    pub fraction_value: Option<BitVec>,
+    pub fraction_value: Option<u8>,
     // There is no unknow, Xd
     // `[bool; 2]`
     // pub unknown: BitVec,
@@ -579,12 +584,12 @@ impl OriginCoord {
         let mut res = 0.0;
 
         if let Some(fraction_value) = &self.fraction_value {
-            let fract = 2f32.powi(-fraction_value.to_i32());
+            let fract = 2f32.powi(-(*fraction_value as i32));
             res += fract;
         }
 
         if let Some(int_value) = &self.int_value {
-            let int = int_value.to_u32() as f32;
+            let int = *int_value as f32;
             res += int;
         }
 
@@ -673,14 +678,14 @@ pub struct SvcDeltaDescription {
 pub struct SvcClientData {
     pub has_delta_update_mask: bool,
     /// `[bool; 8]`
-    pub delta_update_mask: Option<BitVec>,
+    pub delta_update_mask: Option<u8>,
     pub client_data: Delta,
     pub weapon_data: Option<Vec<ClientDataWeaponData>>,
 }
 #[derive(Debug, Clone)]
 pub struct ClientDataWeaponData {
     /// `[bool; 6]`
-    pub weapon_index: BitVec,
+    pub weapon_index: u8,
     pub weapon_data: Delta,
 }
 
@@ -739,11 +744,11 @@ pub struct SvcSpawnStatic {
 #[derive(Debug, Clone)]
 pub struct SvcEventReliable {
     /// `[bool; 10]`
-    pub event_index: BitVec,
+    pub event_index: u16,
     pub event_args: Delta,
     pub has_fire_time: bool,
     /// `[bool; 16]`
-    pub fire_time: Option<BitVec>,
+    pub fire_time: Option<u16>,
 }
 
 /// SVC_SPAWNBASELINE 22
@@ -752,7 +757,7 @@ pub struct SvcSpawnBaseline {
     pub entities: Vec<EntityS>,
     // These members are not inside EntityS like cgdangelo/talent suggests.
     /// `[bool; 6]`
-    pub total_extra_data: BitVec,
+    pub total_extra_data: u8,
     pub extra_data: Vec<Delta>,
 }
 #[derive(Debug, Clone)]
@@ -760,9 +765,9 @@ pub struct EntityS {
     // Goodies
     pub entity_index: u16,
     /// `[bool; 11]`
-    pub index: BitVec,
+    pub index: u16,
     /// `[bool; 2]`
-    pub type_: BitVec,
+    pub type_: u8,
     // One delta for 3 types
     pub delta: Delta,
 }
@@ -1731,7 +1736,7 @@ pub struct SvcNewUserMsg {
 #[derive(Debug, Clone)]
 pub struct SvcPacketEntities {
     /// `[bool; 16]`
-    pub entity_count: BitVec,
+    pub entity_count: u16,
     pub entity_states: Vec<EntityState>,
 }
 #[derive(Debug, Clone)]
@@ -1740,13 +1745,13 @@ pub struct EntityState {
     pub increment_entity_number: bool,
     pub is_absolute_entity_index: Option<bool>,
     /// `[bool; 11]`
-    pub absolute_entity_index: Option<BitVec>,
+    pub absolute_entity_index: Option<u16>,
     /// `[bool; 6]`
-    pub entity_index_difference: Option<BitVec>,
+    pub entity_index_difference: Option<u8>,
     pub has_custom_delta: bool,
     pub has_baseline_index: bool,
     /// `[bool; 6]`
-    pub baseline_index: Option<BitVec>,
+    pub baseline_index: Option<u8>,
     pub delta: Delta,
 }
 
@@ -1754,9 +1759,9 @@ pub struct EntityState {
 #[derive(Debug, Clone)]
 pub struct SvcDeltaPacketEntities {
     /// `[bool; 16]`
-    pub entity_count: BitVec,
+    pub entity_count: u16,
     /// `[bool; 8]`
-    pub delta_sequence: BitVec,
+    pub delta_sequence: u8,
     pub entity_states: Vec<EntityStateDelta>,
 }
 #[derive(Debug, Clone)]
@@ -1766,9 +1771,9 @@ pub struct EntityStateDelta {
     pub remove_entity: bool,
     pub is_absolute_entity_index: bool,
     /// `[bool; 11]`
-    pub absolute_entity_index: Option<BitVec>,
+    pub absolute_entity_index: Option<u16>,
     /// `[bool; 6]`
-    pub entity_index_difference: Option<BitVec>,
+    pub entity_index_difference: Option<u8>,
     // Need to be optional because if remove is true then it won't have delta.
     pub has_custom_delta: Option<bool>,
     pub delta: Option<Delta>,
@@ -1780,35 +1785,35 @@ pub struct EntityStateDelta {
 #[derive(Debug, Clone)]
 pub struct SvcResourceList {
     /// `[bool; 12]`
-    pub resource_count: BitVec,
+    pub resource_count: u16,
     pub resources: Vec<Resource>,
     pub consistencies: Vec<Consistency>,
 }
 #[derive(Debug, Clone)]
 pub struct Resource {
     /// `[bool; 4]`
-    pub type_: BitVec,
+    pub type_: u8,
     /// `&'[u8]`
-    pub name: BitVec,
+    pub name: String,
     /// `[bool; 12]`
-    pub index: BitVec,
+    pub index: u16,
     /// `[bool; 24]`
-    pub size: BitVec,
+    pub size: u32,
     /// `[bool; 3]`
-    pub flags: BitVec,
+    pub flags: u8,
     /// `[bool; 128]`
-    pub md5_hash: Option<BitVec>,
+    pub md5_hash: Option<[u8; 16]>,
     pub has_extra_info: bool,
     /// `[bool; 256]`
-    pub extra_info: Option<BitVec>,
+    pub extra_info: Option<[u8; 32]>,
 }
 #[derive(Debug, Clone)]
 pub struct Consistency {
     pub is_short_index: Option<bool>,
     /// `[bool; 5]`
-    pub short_index: Option<BitVec>,
+    pub short_index: Option<u8>,
     /// `[bool; 10]`
-    pub long_index: Option<BitVec>,
+    pub long_index: Option<u16>,
 }
 
 /// SVC_NEWMOVEVARS 44

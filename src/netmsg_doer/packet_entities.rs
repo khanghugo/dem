@@ -10,7 +10,7 @@ impl Doer for SvcPacketEntities {
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
 
-        let entity_count = br.read_n_bit(16).to_owned();
+        let entity_count = br.read_n_bit(16).to_u16();
         let mut entity_index = 0;
         let mut entity_states: Vec<EntityState> = vec![];
 
@@ -31,12 +31,12 @@ impl Doer for SvcPacketEntities {
             let (absolute_entity_index, entity_index_difference) =
                 if is_absolute_entity_index.is_some() {
                     if !is_absolute_entity_index.unwrap() {
-                        let val = br.read_n_bit(6).to_owned();
-                        entity_index += val.to_u16();
+                        let val = br.read_n_bit(6).to_u8();
+                        entity_index += val as u16;
                         (None, Some(val))
                     } else {
-                        let val = br.read_n_bit(11).to_owned();
-                        entity_index = val.to_u16();
+                        let val = br.read_n_bit(11).to_u16();
+                        entity_index = val;
                         (Some(val), None)
                     }
                 } else {
@@ -46,7 +46,7 @@ impl Doer for SvcPacketEntities {
             let has_custom_delta = br.read_1_bit();
             let has_baseline_index = br.read_1_bit();
             let baseline_index = if has_baseline_index {
-                Some(br.read_n_bit(6).to_owned())
+                Some(br.read_n_bit(6).to_u8())
             } else {
                 None
             };
@@ -97,7 +97,7 @@ impl Doer for SvcPacketEntities {
 
         writer.append_u8(self.id());
 
-        bw.append_vec(&self.entity_count);
+        bw.append_u16(self.entity_count);
 
         for entity in &self.entity_states {
             bw.append_bit(entity.increment_entity_number);
@@ -106,9 +106,9 @@ impl Doer for SvcPacketEntities {
                 bw.append_bit(entity.is_absolute_entity_index.unwrap());
 
                 if entity.is_absolute_entity_index.unwrap() {
-                    bw.append_vec(entity.absolute_entity_index.as_ref().unwrap());
+                    bw.append_u11(entity.absolute_entity_index.unwrap());
                 } else {
-                    bw.append_vec(entity.entity_index_difference.as_ref().unwrap());
+                    bw.append_u6(entity.entity_index_difference.unwrap());
                 }
             }
 
@@ -116,7 +116,7 @@ impl Doer for SvcPacketEntities {
             bw.append_bit(entity.has_baseline_index);
 
             if entity.has_baseline_index {
-                bw.append_vec(entity.baseline_index.as_ref().unwrap());
+                bw.append_u6(entity.baseline_index.unwrap());
             }
 
             let between = entity.entity_index > 0 && entity.entity_index <= aux.max_client as u16;
@@ -141,9 +141,8 @@ impl Doer for SvcPacketEntities {
             }
         }
 
-        use bitvec::bitvec;
-        use bitvec::prelude::Lsb0;
-        bw.append_vec(&bitvec![u8, Lsb0; 0; 16]);
+        // end
+        bw.append_u16(0);
 
         writer.append_u8_slice(&bw.get_u8_vec());
 

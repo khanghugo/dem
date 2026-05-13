@@ -10,14 +10,14 @@ impl Doer for SvcEvent {
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
 
-        let event_count = br.read_n_bit(5).to_owned();
+        let event_count = br.read_n_bit(5).to_u8();
 
-        let events = (0..event_count.to_u8())
+        let events = (0..event_count)
             .map(|_| {
-                let event_index = br.read_n_bit(10).to_owned();
+                let event_index = br.read_n_bit(10).to_u16();
                 let has_packet_index = br.read_1_bit();
                 let packet_index = if has_packet_index {
-                    Some(br.read_n_bit(11).to_owned())
+                    Some(br.read_n_bit(11).to_u16())
                 } else {
                     None
                 };
@@ -36,7 +36,7 @@ impl Doer for SvcEvent {
                 };
                 let has_fire_time = br.read_1_bit();
                 let fire_time = if has_fire_time {
-                    Some(br.read_n_bit(16).to_owned())
+                    Some(br.read_n_bit(16).to_u16())
                 } else {
                     None
                 };
@@ -71,14 +71,14 @@ impl Doer for SvcEvent {
 
         writer.append_u8(self.id());
 
-        bw.append_vec(&self.event_count);
+        bw.append_u5(self.event_count);
 
         for event in &self.events {
-            bw.append_vec(&event.event_index);
+            bw.append_u10(event.event_index);
             bw.append_bit(event.has_packet_index);
 
             if event.has_packet_index {
-                bw.append_vec(event.packet_index.as_ref().unwrap());
+                bw.append_u11(event.packet_index.unwrap());
                 bw.append_bit(event.has_delta.unwrap());
 
                 if event.has_delta.unwrap() {
@@ -92,7 +92,7 @@ impl Doer for SvcEvent {
 
             bw.append_bit(event.has_fire_time);
             if event.has_fire_time {
-                bw.append_vec(event.fire_time.as_ref().unwrap());
+                bw.append_u16(event.fire_time.unwrap());
             }
         }
 

@@ -10,23 +10,23 @@ impl Doer for SvcResourceList {
     fn parse<'a>(i: &'a [u8], _: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
 
-        let resource_count = br.read_n_bit(12).to_owned();
+        let resource_count = br.read_n_bit(12).to_u16();
 
-        let resources: Vec<Resource> = (0..resource_count.to_u16())
+        let resources: Vec<Resource> = (0..resource_count)
             .map(|_| {
-                let type_ = br.read_n_bit(4).to_owned();
-                let name = br.read_string().to_owned();
-                let index = br.read_n_bit(12).to_owned();
-                let size = br.read_n_bit(24).to_owned();
-                let flags = br.read_n_bit(3).to_owned();
-                let md5_hash = if flags.to_u8() & 4 != 0 {
-                    Some(br.read_n_bit(128).to_owned())
+                let type_ = br.read_n_bit(4).to_u8();
+                let name = br.read_string().get_string();
+                let index = br.read_n_bit(12).to_u16();
+                let size = br.read_n_bit(24).to_u32();
+                let flags = br.read_n_bit(3).to_u8();
+                let md5_hash = if flags & 4 != 0 {
+                    Some(br.read_bytes::<16>())
                 } else {
                     None
                 };
                 let has_extra_info = br.read_1_bit();
                 let extra_info = if has_extra_info {
-                    Some(br.read_n_bit(256).to_owned())
+                    Some(br.read_bytes::<32>())
                 } else {
                     None
                 };
@@ -51,9 +51,9 @@ impl Doer for SvcResourceList {
                 let is_short_index = br.read_1_bit();
 
                 let (short_index, long_index) = if is_short_index {
-                    (Some(br.read_n_bit(5).to_owned()), None)
+                    (Some(br.read_n_bit(5).to_u8()), None)
                 } else {
-                    (None, Some(br.read_n_bit(10).to_owned()))
+                    (None, Some(br.read_n_bit(10).to_u16()))
                 };
 
                 consistencies.push(Consistency {
@@ -82,26 +82,26 @@ impl Doer for SvcResourceList {
         writer.append_u8(self.id());
 
         let mut bw = BitWriter::new();
-        bw.append_vec(&self.resource_count);
+        bw.append_u12(self.resource_count);
 
         for resource in &self.resources {
-            bw.append_vec(&resource.type_);
-            bw.append_vec(&resource.name);
-            bw.append_vec(&resource.index);
-            bw.append_vec(&resource.size);
+            bw.append_u4(resource.type_);
+            bw.append_string(&resource.name);
+            bw.append_u12(resource.index);
+            bw.append_u24(resource.size);
 
-            let should_add_md5_hash = resource.flags.to_u8() & 4 != 0;
+            let should_add_md5_hash = resource.flags & 4 != 0;
 
-            bw.append_vec(&resource.flags);
+            bw.append_u3(resource.flags);
 
             if should_add_md5_hash {
-                bw.append_vec(resource.md5_hash.as_ref().unwrap());
+                bw.append_bytes(resource.md5_hash.unwrap());
             }
 
             bw.append_bit(resource.has_extra_info);
 
             if resource.has_extra_info {
-                bw.append_vec(resource.extra_info.as_ref().unwrap());
+                bw.append_bytes(resource.extra_info.unwrap());
             }
         }
 
@@ -118,9 +118,9 @@ impl Doer for SvcResourceList {
 
             bw.append_bit(consistency.is_short_index.unwrap());
             if consistency.is_short_index.unwrap() {
-                bw.append_vec(consistency.short_index.as_ref().unwrap());
+                bw.append_u5(consistency.short_index.unwrap());
             } else {
-                bw.append_vec(consistency.long_index.as_ref().unwrap());
+                bw.append_u10(consistency.long_index.unwrap());
             }
         }
 

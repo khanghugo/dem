@@ -26,7 +26,7 @@ impl Doer for SvcClientData {
 
         let has_delta_update_mask = br.read_1_bit();
         let delta_update_mask = if has_delta_update_mask {
-            Some(br.read_n_bit(8).to_owned())
+            Some(br.read_n_bit(8).to_u8())
         } else {
             None
         };
@@ -36,7 +36,7 @@ impl Doer for SvcClientData {
         // This is a vector unlike THE docs.
         let mut weapon_data: Vec<ClientDataWeaponData> = vec![];
         while br.read_1_bit() {
-            let weapon_index = br.read_n_bit(6).to_owned();
+            let weapon_index = br.read_n_bit(6).to_u8();
             let delta = parse_delta(aux.delta_decoders.get("weapon_data_t\0").unwrap(), &mut br);
 
             weapon_data.push(ClientDataWeaponData {
@@ -81,7 +81,7 @@ impl Doer for SvcClientData {
         bw.append_bit(self.has_delta_update_mask);
 
         if self.has_delta_update_mask {
-            bw.append_vec(self.delta_update_mask.as_ref().unwrap());
+            bw.append_u8(self.delta_update_mask.unwrap());
         }
 
         write_delta(
@@ -93,7 +93,7 @@ impl Doer for SvcClientData {
         if let Some(weapon_data) = &self.weapon_data {
             for data in weapon_data {
                 bw.append_bit(true);
-                bw.append_vec(&data.weapon_index);
+                bw.append_u6(data.weapon_index);
                 write_delta(
                     &data.weapon_data,
                     aux.delta_decoders.get("weapon_data_t\0").unwrap(),

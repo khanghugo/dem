@@ -10,8 +10,8 @@ impl Doer for SvcDeltaPacketEntities {
     fn parse<'a>(i: &'a [u8], aux: &mut DemoGlobalState) -> NomResult<'a, Self> {
         let mut br = BitReader::new(i);
 
-        let entity_count = br.read_n_bit(16).to_owned();
-        let delta_sequence = br.read_n_bit(8).to_owned();
+        let entity_count = br.read_n_bit(16).to_u16();
+        let delta_sequence = br.read_n_bit(8).to_u8();
 
         let mut entity_index: u16 = 0;
         let mut entity_states: Vec<EntityStateDelta> = vec![];
@@ -27,12 +27,12 @@ impl Doer for SvcDeltaPacketEntities {
             let is_absolute_entity_index = br.read_1_bit();
 
             let (absolute_entity_index, entity_index_difference) = if is_absolute_entity_index {
-                let idx = br.read_n_bit(11).to_owned();
-                entity_index = idx.to_u16();
+                let idx = br.read_n_bit(11).to_u16();
+                entity_index = idx;
                 (Some(idx), None)
             } else {
-                let diff = br.read_n_bit(6).to_owned();
-                entity_index += diff.to_u16();
+                let diff = br.read_n_bit(6).to_u8();
+                entity_index += diff as u16;
                 (None, Some(diff))
             };
 
@@ -96,17 +96,17 @@ impl Doer for SvcDeltaPacketEntities {
 
         writer.append_u8(self.id());
 
-        bw.append_vec(&self.entity_count);
-        bw.append_vec(&self.delta_sequence);
+        bw.append_u16(self.entity_count);
+        bw.append_u8(self.delta_sequence);
 
         for entity in &self.entity_states {
             bw.append_bit(entity.remove_entity);
             bw.append_bit(entity.is_absolute_entity_index);
 
             if entity.is_absolute_entity_index {
-                bw.append_vec(entity.absolute_entity_index.as_ref().unwrap());
+                bw.append_u11(entity.absolute_entity_index.unwrap());
             } else {
-                bw.append_vec(entity.entity_index_difference.as_ref().unwrap());
+                bw.append_u6(entity.entity_index_difference.unwrap());
             }
 
             if entity.remove_entity {
@@ -138,9 +138,7 @@ impl Doer for SvcDeltaPacketEntities {
         }
 
         // Remember to append 16 bits of 0
-        use bitvec::bitvec;
-        use bitvec::prelude::Lsb0;
-        bw.append_vec(&bitvec![u8, Lsb0; 0; 16]);
+        bw.append_u16(0);
 
         writer.append_u8_slice(&bw.get_u8_vec());
 

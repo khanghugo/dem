@@ -87,6 +87,8 @@ pub fn open_demo_from_bytes(demo_bytes: &[u8]) -> Result<Demo, DemoError> {
 }
 
 /// Writes a [`u32`] into [`types::BitVec`]
+///
+/// (number: u32, bit_count)
 #[macro_export]
 macro_rules! nbit_num {
     ($num:expr, $bit:expr) => {{

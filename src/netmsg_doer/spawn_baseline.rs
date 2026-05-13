@@ -12,13 +12,13 @@ impl Doer for SvcSpawnBaseline {
         let mut entities: Vec<EntityS> = vec![];
 
         while br.peek_n_bits(16).to_u32() != (1 << 16) - 1 {
-            let index = br.read_n_bit(11).to_owned();
-            let entity_index = index.to_u16();
+            let index = br.read_n_bit(11).to_u16();
+            let entity_index = index;
 
-            let between = index.to_u16() > 0 && index.to_u16() <= aux.max_client as u16;
-            let type_ = br.read_n_bit(2).to_owned();
+            let between = index > 0 && index <= aux.max_client as u16;
+            let type_ = br.read_n_bit(2).to_u8();
 
-            let delta = if type_.to_u8() & 1 != 0 {
+            let delta = if type_ & 1 != 0 {
                 if between {
                     parse_delta(
                         aux.delta_decoders.get("entity_state_player_t\0").unwrap(),
@@ -35,7 +35,7 @@ impl Doer for SvcSpawnBaseline {
             };
 
             let res = EntityS {
-                index: index.clone(),
+                index,
                 entity_index,
                 type_,
                 delta,
@@ -47,10 +47,10 @@ impl Doer for SvcSpawnBaseline {
         // Footer | last entity = (1 << 16) - 1
         br.read_n_bit(16);
 
-        let total_extra_data = br.read_n_bit(6).to_owned();
+        let total_extra_data = br.read_n_bit(6).to_u8();
 
         let extra_data_description = aux.delta_decoders.get("entity_state_t\0").unwrap();
-        let extra_data: Vec<Delta> = (0..total_extra_data.to_u8())
+        let extra_data: Vec<Delta> = (0..total_extra_data)
             .map(|_| parse_delta(extra_data_description, &mut br))
             .collect();
 
@@ -74,13 +74,12 @@ impl Doer for SvcSpawnBaseline {
         let mut bw = BitWriter::new();
 
         for entity in &self.entities {
-            let between =
-                entity.index.to_u16() > 0 && entity.index.to_u16() <= aux.max_client as u16;
+            let between = entity.index > 0 && entity.index <= aux.max_client as u16;
 
-            bw.append_vec(&entity.index);
-            bw.append_slice(&entity.type_); // heh
+            bw.append_u11(entity.index);
+            bw.append_u2(entity.type_); // heh
 
-            if entity.type_.to_u8() & 1 != 0 {
+            if entity.type_ & 1 != 0 {
                 if between {
                     write_delta(
                         &entity.delta,
@@ -103,11 +102,11 @@ impl Doer for SvcSpawnBaseline {
             }
         }
 
-        use bitvec::bitvec;
-        use bitvec::prelude::Lsb0;
-        bw.append_vec(&bitvec![u8, Lsb0; 1; 16]);
+        // end
+        // append all 0xFFFF
+        bw.append_u16(0xFFFF);
 
-        bw.append_vec(&self.total_extra_data);
+        bw.append_u6(self.total_extra_data);
 
         let extra_data_description = aux.delta_decoders.get("entity_state_t\0").unwrap();
         for data in &self.extra_data {

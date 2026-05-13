@@ -137,7 +137,7 @@ pub fn write_delta(delta: &Delta, delta_decoder: &DeltaDecoder, bw: &mut BitWrit
         byte_mask_count += 1;
     }
 
-    bw.append_u32_range(byte_mask_count as u32, 3);
+    bw.append_u3(byte_mask_count);
     for i in 0..byte_mask_count {
         bw.append_u8(byte_mask[i as usize]);
     }
@@ -179,12 +179,12 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
             };
 
             // value is positive so cast unsigned without side effects.
-            bw.append_u32_range(value as u32, description.bits - 1);
+            bw.append_u32_nbit(value as u32, description.bits - 1);
         } else {
             let res_value = u8::from_le_bytes(bytes);
             let value = res_value * description.divisor as u8;
 
-            bw.append_u32_range(value as u32, description.bits);
+            bw.append_u32_nbit(value as u32, description.bits);
         }
     } else if is_short {
         let bytes: [u8; 2] = value[..2].try_into().unwrap();
@@ -201,12 +201,12 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
                 signed_value
             };
 
-            bw.append_u32_range(value as u32, description.bits - 1);
+            bw.append_u32_nbit(value as u32, description.bits - 1);
         } else {
             let res_value = u16::from_le_bytes(bytes);
             let value = res_value * description.divisor as u16;
 
-            bw.append_u32_range(value as u32, description.bits);
+            bw.append_u32_nbit(value as u32, description.bits);
         }
     } else if is_integer {
         let bytes: [u8; 4] = value[..4].try_into().unwrap();
@@ -223,12 +223,12 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
                 signed_value
             };
 
-            bw.append_u32_range(value as u32, description.bits - 1);
+            bw.append_u32_nbit(value as u32, description.bits - 1);
         } else {
             let res_value = u32::from_le_bytes(bytes);
             let value = res_value * description.divisor as u32;
 
-            bw.append_u32_range(value, description.bits);
+            bw.append_u32_nbit(value, description.bits);
         }
     } else if is_some_float {
         let bytes: [u8; 4] = value[..4].try_into().unwrap();
@@ -244,12 +244,12 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
                 signed_value
             };
 
-            bw.append_u32_range(value.round() as u32, description.bits - 1);
+            bw.append_u32_nbit(value.round() as u32, description.bits - 1);
         } else {
             let res_value = f32::from_le_bytes(bytes);
             let value = res_value * description.divisor;
 
-            bw.append_u32_range(value.round() as u32, description.bits);
+            bw.append_u32_nbit(value.round() as u32, description.bits);
         }
     } else if is_angle {
         // Quick hack. Angle is i16 so here it is.
@@ -257,7 +257,7 @@ fn write_delta_field(description: &DeltaDecoderS, value: &[u8], bw: &mut BitWrit
         let res_value = f32::from_le_bytes(bytes);
         let multiplier = 360f32 / (1 << description.bits) as f32;
         let value = (res_value / multiplier).round() as u32;
-        bw.append_u32_range(value, description.bits);
+        bw.append_u32_nbit(value, description.bits);
     } else if is_string {
         for c in value {
             bw.append_u8(*c);
