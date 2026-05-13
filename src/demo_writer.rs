@@ -7,10 +7,7 @@ use crate::{
 };
 
 impl Demo {
-    pub fn write_to_file(
-        &mut self,
-        path: impl AsRef<OsStr> + AsRef<Path>,
-    ) -> Result<(), DemoError> {
+    pub fn write_to_file(&self, path: impl AsRef<OsStr> + AsRef<Path>) -> Result<(), DemoError> {
         let mut file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -23,7 +20,7 @@ impl Demo {
         Ok(())
     }
 
-    pub fn write_to_bytes(&mut self) -> Vec<u8> {
+    pub fn write_to_bytes(&self) -> Vec<u8> {
         let mut writer = ByteWriter::new();
 
         // Magic has 8 bytes in total
@@ -221,7 +218,7 @@ impl Demo {
 
                                 for message in vec {
                                     writer.append_u8_slice(
-                                        message.write(self._state.as_mut().unwrap()).as_slice(),
+                                        message.write(self._state.as_ref().unwrap()).as_slice(),
                                     );
                                 }
 

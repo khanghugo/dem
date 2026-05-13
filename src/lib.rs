@@ -132,7 +132,7 @@ mod test {
 
     #[test]
     fn write_read() {
-        let mut dem = open_demo("./src/tests/demotest.dem").unwrap();
+        let dem = open_demo("./src/tests/demotest.dem").unwrap();
         let a = dem.write_to_bytes();
         let _dem = open_demo_from_bytes(&a).unwrap();
     }
@@ -164,5 +164,44 @@ mod test {
                 })
             })
             .unwrap_or_else(|_| assert!(false));
+    }
+
+    #[test]
+    fn read_write_read_a_lot() {
+        let folder = "./src/tests/";
+
+        if let Ok(read_dir_res) = std::fs::read_dir(folder) {
+            read_dir_res
+                .filter_map(|entry| entry.ok())
+                .for_each(|entry| {
+                    let path = entry.path();
+
+                    if path.is_dir() {
+                        return;
+                    }
+
+                    if path.extension().map(|ext| ext != "dem").unwrap_or(false) {
+                        return;
+                    }
+
+                    let a = open_demo(path.as_path());
+
+                    assert!(a.is_ok(), "error opening {}", path.display());
+
+                    let a = a.unwrap();
+
+                    let a_bytes = a.write_to_bytes();
+
+                    let a_again = open_demo_from_bytes(&a_bytes);
+
+                    assert!(
+                        a_again.is_ok(),
+                        "error parse write parse {}",
+                        path.display()
+                    )
+                })
+        } else {
+            panic!("cannot read dir for read_write_read_a_lot");
+        }
     }
 }
